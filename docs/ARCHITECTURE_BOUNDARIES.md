@@ -41,9 +41,10 @@ The key architectural rules are:
 - **replacement-capable, coexistence-first**;
 - discovery, learning, semantic grounding, control synthesis, deterministic execution, control ownership, and safety authority are distinct responsibilities;
 - a learning component does not receive production output authority merely because it can propose a command or generate control logic;
-- a new control revision becomes executable only through an explicit validation and promotion path;
+- a new control revision becomes executable only through explicit validation and immutable promotion binding;
 - unknown or unobserved control behavior is not silently promoted;
-- each physical output/control namespace has exactly one authoritative ordinary-control writer at a time.
+- each physical output/control namespace has exactly one authoritative ordinary-control writer at a time;
+- once a deterministic/manual recovery capability is promoted, failure of adaptive-learning services must not automatically remove that qualified capability.
 
 ## 1. Discovery and industrial adapters
 
@@ -80,7 +81,7 @@ Before ABIL plans replacement, it must distinguish what role the legacy componen
 - `MIXED`;
 - `UNKNOWN`.
 
-Unknown authority locus fails closed for takeover. Network presence or device identity is not proof of control authority.
+Unknown authority locus blocks takeover authority. Network presence or device identity is not proof of control authority.
 
 ## 3. Machine-model / intelligence plane
 
@@ -106,7 +107,7 @@ The target is **targeted semantic grounding**, not exhaustive hand-programming o
 
 ## 5. Operator commissioning and diagnostics
 
-The operator surface should distinguish observed telemetry, vendor/configuration evidence, operator-supplied semantics, learned relationships, prediction, residual/error, anomaly/change evidence, hypothesis, uncertainty, proposed observations/tests, requested actions, generated candidate control revisions, control-coverage state, and promoted/active control artifacts.
+The operator surface should distinguish observed telemetry, vendor/configuration evidence, operator-supplied semantics, learned relationships, prediction, residual/error, anomaly/change evidence, hypothesis, uncertainty, proposed observations/tests, requested actions, generated candidate control revisions, control-coverage state, promoted/active control artifacts, and current control-ownership state.
 
 A language model may translate structured evidence into natural-language explanations, but the underlying evidence must remain independently inspectable. Generated prose is not machine truth.
 
@@ -130,7 +131,7 @@ The preferred intermediate artifact is an inspectable machine-control model cont
 
 Every candidate control artifact must also carry a **control-coverage ledger**. Each promoted state, transition, command, permissive, timeout, recovery path, and ordinary interlock must identify the evidence/requirements that support it and whether it was observed, technician-specified, vendor-specified, inferred, simulated, or tested.
 
-`Not observed` means `not authorized by inference alone`. Unknown or insufficiently covered behavior must fail closed, remain technician-engineered, or be explicitly excluded from the promoted operating envelope.
+`Not observed` means `not authorized by inference alone`. Unknown or insufficiently covered behavior must be excluded from authority, remain technician-engineered, or be explicitly outside the promoted operating envelope.
 
 Replay similarity alone is insufficient. Validation should include held-out and negative-transition coverage where applicable, technician review, fault/alarm paths, restart/restore behavior, deterministic timing/resource qualification, and rollback/recovery testing.
 
@@ -146,34 +147,43 @@ A useful transitional architecture is **PLC execution proxy mode**: ABIL owns mo
 
 Direct rewriting of an installed vendor project is target-specific, not ABIL's universal onboarding method. Hardware configuration, I/O ownership, produced/consumed data, motion, fieldbus master configuration, firmware, passwords/protection, safety signatures, licenses, and proprietary project formats can all make vendor-project mutation inappropriate or impractical.
 
-## 8. Deterministic control runtime
+## 8. Deterministic control runtime and degraded operation
 
 When coexistence is impossible, undesirable, unsupported, unreliable, failed, locked, or uneconomic, ABIL may replace the ordinary control function with a separately engineered deterministic runtime.
 
-The deterministic runtime is responsible for approved machine state/sequence execution, deterministic timers, bounded command handling, ordinary process permissives/interlocks, I/O scan/update scheduling, protocol-specific I/O semantics, watchdog behavior, timeout/fail-closed or declared fallback behavior, alarm/fault reporting, execution evidence, restart/recovery behavior, and exact active artifact identity.
+The deterministic runtime is responsible for approved machine state/sequence execution, deterministic timers, bounded command handling, ordinary process permissives/interlocks, I/O scan/update scheduling, protocol-specific I/O semantics, watchdog behavior, target-specific validated safe-state/fallback behavior, alarm/fault reporting, execution evidence, restart/recovery behavior, and exact active artifact identity.
 
 The runtime executes a promoted control artifact. It must not contain a general-purpose learner or LLM that can freely change control behavior during execution.
 
-Direct remote-I/O takeover requires exact hardware/protocol/deployment identity, timing/resource evidence, qualified drivers/adapters, control-coverage evidence, rollback/recovery evidence, fenced control ownership, and explicit target-specific authorization.
+Direct remote-I/O takeover requires exact hardware/protocol/deployment identity, timing/resource evidence, qualified drivers/adapters, control-coverage evidence, rollback/recovery evidence, fenced control ownership, target-specific safe-state/fallback evidence, and explicit target-specific authorization.
 
-## 9. Single-writer control ownership
+Once deterministic control or a known-good manual/recovery surface is promoted, adaptive-learning/LLM/diagnostic-synthesis services must not become a single point of failure for it. Process isolation, resource reservation, startup ordering, watchdogs, and recovery behavior must support declared degraded modes in which the intelligence plane can crash, stall, be disabled, or be upgraded while the already-qualified deterministic/manual capability either continues inside its operating envelope or transitions according to the target-specific validated safe-state/fallback policy.
+
+## 9. Single-writer control ownership and promotion binding
 
 For every physical output/control namespace, exactly one authoritative ordinary-control writer may exist at a time.
 
 A surviving PLC, HMI, ABIL commissioning gateway, PLC proxy, and ABIL direct runtime must not rely on convention alone to avoid split-brain writes.
 
-The ownership contract must define:
-
-- ownership domains;
-- current authoritative writer identity;
-- acquisition/release conditions;
-- physical, protocol, configuration, or credential fencing;
-- stale-command/writer rejection;
-- restart and partial-failure behavior;
-- rollback/fallback semantics;
-- exact transfer-of-authority receipts.
+The ownership contract must define ownership domains, current writer identity, acquisition/release conditions, physical/protocol/configuration/credential fencing, stale-command rejection, restart/partial-failure behavior, rollback/fallback semantics, and transfer-of-authority receipts.
 
 Cutover is not complete until the previous writer is mechanically unable to continue authoritatively writing the transferred domain and the new writer's ownership is verified.
+
+Generated control is always a **candidate** until an immutable promotion binding exists. That binding must identify or digest:
+
+- target deployment/machine;
+- control-authority locus and transferred ownership domain;
+- machine-model/evidence version;
+- control-coverage ledger version;
+- generated artifact digest/version;
+- target hardware/network/protocol/configuration;
+- preserved safety-interface/handshake inventory;
+- validation evidence and acceptance result;
+- target-specific safe-state/fallback policy;
+- authority/signoff receipt;
+- known-good rollback artifact/configuration.
+
+Without that binding, the artifact has no production authority.
 
 ## 10. Safety and action authority
 
@@ -191,6 +201,8 @@ ABIL may observe such state and preserve it as a prerequisite, but it may not do
 
 Direct takeover and generated-control promotion must bind a reviewed list of preserved safety interfaces/handshakes and show that ordinary-controller replacement cannot bypass or defeat them.
 
+Physical safe-state/fallback behavior is target-specific. Depending on the machine and hazard analysis, de-energize, hold, controlled stop, rollback, or another response may be appropriate. ABIL must not encode one universal physical `fail-closed` behavior; the applicable policy must come from independently qualified installation-specific safety/hazard evidence.
+
 Any write-capable path must be independently constrained with capability-appropriate allowlists, ranges/rate limits, state prerequisites, freshness/replay protection, logging, timeout/reversion behavior, and immediate disable/bypass.
 
 ## 11. Read-only first
@@ -205,9 +217,9 @@ Read-only is a qualification stage and product wedge, not the final product boun
 
 The valuable ABIL state is created during discovery, learning, commissioning, synthesis, validation, and operation. It should not be assumed to pre-exist before ABIL arrives.
 
-Persistent state may include versioned records for discovered topology, control-authority locus, device/source/signal identities, adapter/protocol configuration, operator semantics with provenance, learned machine model and uncertainty, evidence/history, control-coverage ledger, candidate control models, validation receipts, promoted control artifact/version, control-ownership/fencing state, deterministic runtime configuration, deployment identity, and software/schema/config versions.
+Persistent state may include versioned records for discovered topology, control-authority locus, device/source/signal identities, adapter/protocol configuration, operator semantics with provenance, learned machine model and uncertainty, evidence/history, control-coverage ledger, candidate control models, validation receipts, promoted control artifact/version, immutable promotion binding, control-ownership/fencing state, target-specific safe-state/fallback policy reference, deterministic runtime configuration, deployment identity, and software/schema/config versions.
 
-Copying/restoring state across machines requires an explicit compatibility/migration operation. Ordinary restore must fail closed on incompatible identity/binding.
+Copying/restoring state across machines requires an explicit compatibility/migration operation. Ordinary restore must reject incompatible identity/binding at the authority/compatibility layer.
 
 ## 13. Evidence, causation, and early-substrate boundaries
 
