@@ -63,7 +63,7 @@ A representative target workflow is:
 - `MIXED`;
 - `UNKNOWN`.
 
-Unknown authority locus fails closed for takeover. A failed supervisory HMI is a different replacement problem from a failed soft PLC, motion controller, ordinary PLC, or safety controller.
+Unknown authority locus fails closed at the claim/authority level for takeover. A failed supervisory HMI is a different replacement problem from a failed soft PLC, motion controller, ordinary PLC, or safety controller.
 
 ## 4. Three control deployment modes
 
@@ -112,9 +112,9 @@ The ABIL appliance then owns an independently engineered deterministic control r
 - commands drives, valves, actuators, and ordinary control outputs through qualified adapters;
 - exposes alarms, operator state, and manual controls;
 - records execution evidence and faults;
-- fails closed or falls back according to a declared runtime policy.
+- enters a **target-specific validated safe-state/fallback policy** on relevant faults rather than assuming one universal physical `fail-closed` behavior.
 
-Direct takeover is a capability promotion, not a configuration convenience. It requires protocol-specific qualification, hardware compatibility evidence, timing/resource evidence, control-coverage evidence, fenced ownership transfer, and explicit authorization for the target installation.
+Direct takeover is a capability promotion, not a configuration convenience. It requires protocol-specific qualification, hardware compatibility evidence, timing/resource evidence, control-coverage evidence, fenced ownership transfer, target-specific safe-state/fallback evidence, and explicit authorization for the target installation.
 
 ## 5. Intelligence plane versus deterministic control plane
 
@@ -132,6 +132,18 @@ Responsible for approved machine state/sequence execution, bounded command handl
 
 The deterministic runtime executes a promoted control artifact. It does not continuously rewrite itself merely because the intelligence plane has learned something new. A newly synthesized control revision must pass defined validation and promotion gates before becoming executable authority.
 
+### 5.3 Learner-independent degraded/manual operation
+
+Once deterministic control or a known-good manual/recovery surface has been promoted, the intelligence/adaptive-learning plane must not become a single point of failure for that already-qualified capability.
+
+The appliance architecture must support declared degraded states in which adaptive learning, LLM services, diagnostics synthesis, or model-update processes can crash, stall, be disabled, or be upgraded while:
+
+- the promoted deterministic control runtime continues according to its qualified operating envelope; or
+- the system enters its target-specific validated safe-state/fallback policy; and
+- qualified manual/recovery controls remain available where the installation design requires them.
+
+Resource allocation, process isolation, startup ordering, watchdogs, and recovery behavior must preserve this separation.
+
 ## 6. Control synthesis model
 
 ABIL should not treat control generation as unconstrained source-code generation.
@@ -144,7 +156,7 @@ The preferred intermediate product is an inspectable machine control model with 
 - requested actions;
 - expected consequences;
 - timing windows;
-- ordinary interlocks that have been independently classified as non-safety;
+- ordinary interlocks independently classified as non-safety;
 - alarm conditions;
 - recovery paths;
 - operator/manual modes;
@@ -167,7 +179,7 @@ Therefore every candidate control artifact must carry a **control-coverage ledge
 - held-out/negative-transition test coverage where applicable;
 - authorization status within the declared operating envelope.
 
-`Not observed` means **not authorized by inference alone**. Unknown or insufficiently covered behavior must fail closed, remain technician-engineered, or be explicitly excluded from the promoted operating envelope.
+`Not observed` means **not authorized by inference alone**. Unknown or insufficiently covered behavior must be excluded from authority, remain technician-engineered, or be explicitly outside the promoted operating envelope. The resulting physical response to an unknown/fault condition is governed by the target-specific validated safe-state/fallback policy, not a universal default.
 
 Matching recorded traces is necessary but not sufficient for promotion.
 
@@ -225,6 +237,8 @@ ABIL may observe such signals and preserve them as prerequisites, but it may not
 
 Direct takeover and generated-control promotion must bind a reviewed list of preserved safety interfaces/handshakes and demonstrate that ordinary-controller replacement cannot bypass or defeat them.
 
+Physical fault response, stop behavior, de-energization, holding behavior, rollback, and recovery policy are target-specific and must be validated with independent safety/hazard authority appropriate to the installation. This architecture does not define one universal machine-safe state.
+
 Safety replacement, validation, certification, and regulatory obligations remain outside the default ABIL control-reconstruction path.
 
 ## 12. Single-writer control ownership and authority transfer
@@ -238,7 +252,7 @@ The control-ownership contract must define:
 - ownership domains down to the relevant output/control namespace;
 - current authoritative writer identity;
 - acquisition and release conditions;
-- protocol, configuration, or physical fencing used to prevent stale writers;
+- protocol, configuration, credential, or physical fencing used to prevent stale writers;
 - restart behavior;
 - stale-command rejection;
 - partial-failure behavior;
@@ -246,6 +260,26 @@ The control-ownership contract must define:
 - transfer-of-authority receipts and exact active artifact/controller identity.
 
 Cutover is complete only when the previous writer is mechanically unable to continue authoritatively writing the transferred domain and the new writer's ownership is verified.
+
+### 12.1 Immutable promotion/deployment binding
+
+Generated control is always a **candidate** until a promotion binding exists.
+
+Promotion must bind, directly or by stable digest/reference:
+
+- exact target deployment/machine identity;
+- control-authority locus and ownership domain(s) being transferred;
+- machine-model/evidence version;
+- control-coverage ledger version;
+- generated control artifact digest/version;
+- target hardware/network/protocol/configuration identity;
+- preserved safety-interface/handshake inventory;
+- validation evidence set and acceptance result;
+- target-specific safe-state/fallback policy identity;
+- human/authority signoff and promotion receipt;
+- known-good rollback artifact/configuration identity.
+
+A control artifact lacking this binding has no production authority.
 
 ## 13. Validation and promotion ladder
 
@@ -263,9 +297,9 @@ The long-term capability ladder is:
 8. replay/simulation validation including held-out/negative transition coverage;
 9. shadow comparison against the surviving controller where available;
 10. PLC execution-proxy mode with explicit single-writer ownership;
-11. supervised cutover to a validated control artifact with fenced authority transfer;
+11. supervised cutover to a validated control artifact with immutable promotion binding and fenced authority transfer;
 12. direct remote-I/O takeover where needed;
-13. permanent ABIL runtime with ongoing diagnostics and learning outside deterministic execution authority.
+13. permanent ABIL runtime with learner-independent deterministic/manual degraded behavior and ongoing diagnostics/learning outside execution authority.
 
 Each promotion must be separately evidenced. Passing an earlier stage does not imply authority for a later one.
 
@@ -277,13 +311,15 @@ A plausible package is a rugged/fanless mini-PC, appropriate industrial Ethernet
 
 Tiny Core/CorePure64, a stripped Debian-family appliance, or another compact Linux base may be evaluated later. The product architecture does not yet bind ABIL to one distribution.
 
+The appliance architecture must permit deterministic/manual recovery services to be isolated from and survive failure or intentional shutdown of adaptive-learning services.
+
 ## 15. Persistent machine/deployment state
 
 The valuable ABIL state is created during discovery, learning, commissioning, synthesis, validation, and operation. It does not pre-exist before ABIL arrives.
 
-Persistent records may include discovered topology; source/device/signal identities; control-authority-locus classification; adapter/protocol configuration; operator semantics with provenance; learned machine model; evidence/history; control-coverage ledger; candidate control models; validation receipts; promoted control artifact/version; ownership/fencing state; runtime configuration; deployment identity; and software/schema/config versions.
+Persistent records may include discovered topology; source/device/signal identities; control-authority-locus classification; adapter/protocol configuration; operator semantics with provenance; learned machine model; evidence/history; control-coverage ledger; candidate control models; validation receipts; promoted control artifact/version; immutable promotion binding; ownership/fencing state; target-specific safe-state/fallback policy reference; runtime configuration; deployment identity; and software/schema/config versions.
 
-Ordinary restore must fail closed on incompatible identity/binding. Cross-machine/schema/config/software reuse is a separate explicit migration/transfer operation.
+Ordinary restore must fail closed at the compatibility/authority level on incompatible identity/binding. Cross-machine/schema/config/software reuse is a separate explicit migration/transfer operation.
 
 ## 16. Relationship to frozen F0 R1 review
 
@@ -311,36 +347,17 @@ The next R2 subject must not conflate substrate honesty with learner/product eff
 
 ### 18.1 `R2-SUBSTRATE-QUALIFIED`
 
-Asks whether the corrected early substrate is implementation-ready as an honest experimental/runtime foundation. It includes:
-
-- evaluator/learner separation and noninterference;
-- event identity/currentness and collision-safe stream/channel identity;
-- prequential/causal evidence ordering;
-- asynchronous assembly and bounded missing/late/duplicate/reorder behavior;
-- deterministic replay/corpus identity;
-- checkpoint trust binding and restart equivalence;
-- fair paired baselines on identical evidence/resources;
-- machine-readable evidence sufficient for independent recomputation;
-- resource/throughput/checkpoint/restart bounds;
-- opaque-label/semantic-ablation controls;
-- ability to report that a simple baseline wins or that no useful learner advantage exists.
+Asks whether the corrected early substrate is implementation-ready as an honest experimental/runtime foundation. It includes evaluator/learner separation and noninterference; event identity/currentness; prequential/causal evidence ordering; asynchronous assembly; deterministic replay/corpus identity; checkpoint trust binding and restart equivalence; fair paired baselines; recomputable evidence; resource bounds; opaque-label controls; and the ability to report that a simple baseline wins or no useful learner advantage exists.
 
 This gate must **not** require the first learner to discover nontrivial structure or outperform baselines.
 
 ### 18.2 `R2-LEARNER-EFFICACY`
 
-Separately asks whether a particular learner earns product/learning claims. It may require preregistered evidence such as:
-
-- useful nontrivial machine-specific learned structure;
-- improvement over agreed baselines where appropriate;
-- recurrence/forgetting/adaptation behavior;
-- uncertainty/change quality;
-- opaque-label performance;
-- onboarding/semantic-efficiency evidence.
+Separately asks whether a particular learner earns product/learning claims. It may require preregistered evidence such as useful nontrivial machine-specific learned structure, improvement over agreed baselines where appropriate, recurrence/forgetting/adaptation behavior, uncertainty/change quality, opaque-label performance, and onboarding/semantic-efficiency evidence.
 
 ### 18.3 Long-term compatibility question
 
-A corrected early substrate must also avoid architectural commitments that block later coexistence-first control reconstruction. In particular it must not collapse PLC/vendor identity, capability levels, human-supplied semantics, control-coverage state, safety classification, ownership/fencing, or future deterministic control artifacts into one irreversible schema or runtime assumption.
+A corrected early substrate must also avoid architectural commitments that block later coexistence-first control reconstruction. In particular it must not collapse PLC/vendor identity, capability levels, human-supplied semantics, control-coverage state, safety classification, ownership/fencing, promotion binding, or future deterministic control artifacts into one irreversible schema or runtime assumption.
 
 Write-capable commissioning, PLC proxy execution, vendor-project generation, direct remote-I/O control, deterministic runtime implementation, and production cutover remain later separately qualified capability stages.
 
@@ -359,8 +376,10 @@ ABIL earns the stronger product claim only if it can demonstrate that it can:
 9. replace ordinary PLC control behavior when the legacy controller cannot remain viable;
 10. preserve or independently classify protective/safety functions rather than infer them away;
 11. mechanically prevent split-brain ordinary-control writers during proxy, cutover, rollback, and restart;
-12. run the promoted control artifact deterministically and stably for the target hardware/network;
-13. provide a supportable permanent replacement system rather than a one-off engineering demo.
+12. bind promoted control immutably to exact deployment/evidence/artifact/validation/rollback identities;
+13. keep already-promoted deterministic/manual recovery capability available independently of learner-service failure according to the qualified operating design;
+14. run the promoted control artifact deterministically and stably for the target hardware/network;
+15. provide a supportable permanent replacement system rather than a one-off engineering demo.
 
 ## 20. Explicit non-goals for the current successor design
 
