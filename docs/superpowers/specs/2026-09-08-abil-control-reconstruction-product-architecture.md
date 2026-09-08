@@ -25,7 +25,7 @@ The preferred order is:
 1. **Discover and observe the existing system.** Treat the surviving PLC, HMI, drives, remote I/O, fieldbus devices, and network traffic as evidence.
 2. **Work with the existing PLC logic when practical.** Existing ladder/function-block/structured-text logic may remain the deterministic executor while ABIL learns and reconstructs machine behavior.
 3. **Use the existing PLC as an execution proxy when useful.** ABIL may issue bounded high-level requests through a narrow interface while the PLC continues to own scan-time I/O, local interlocks, and established fieldbus behavior.
-4. **Replace ordinary PLC control logic when coexistence is impossible, uneconomic, unsupported, locked, unreliable, or itself the failed component.** In that case ABIL's deterministic control runtime may become the actual machine controller against remote I/O and field devices.
+4. **Replace ordinary PLC control logic when coexistence is impossible, undesirable, uneconomic, unsupported, locked, unreliable, or itself the failed component.** In that case ABIL's deterministic control runtime may become the actual machine controller against remote I/O and field devices.
 
 The architectural goal is therefore **replacement-capable, coexistence-first**.
 
@@ -337,3 +337,16 @@ This document does not yet choose:
 - pricing/licensing/legal structure.
 
 Those choices should be forced by qualification evidence and the first concrete field target rather than prematurely frozen.
+
+## 16. Immediate successor review boundary
+
+This broader product architecture does **not** turn the next R2 source subject into a write-capable controller build.
+
+The immediate successor review should remain focused on repairing the frozen F0 learning/telemetry substrate contract against the admitted R1 failures while preserving alignment with the long-term product direction.
+
+The R2 review board should therefore ask two separate questions:
+
+1. **Is the corrected early substrate implementation-ready on its own terms?** This includes learner/evaluator separation, event identity/currentness, replay determinism, checkpoint trust binding, runtime/resource qualification, opaque-label testing, onboarding-cost evidence, and machine-specific learned-structure evidence.
+2. **Does the corrected early substrate avoid architectural commitments that would block the later coexistence-first control-reconstruction path?** In particular it should not collapse PLC/vendor identity, protocol capability levels, human-supplied semantics, or future deterministic control artifacts into one irreversible schema or runtime assumption.
+
+Write-capable commissioning, PLC proxy execution, vendor-project generation, direct remote-I/O control, deterministic runtime implementation, and production cutover remain later separately qualified capability stages.
