@@ -16,10 +16,10 @@ It incorporates the converged exact-head review findings returned against PR #3 
 
 For the current PR #3 source subject:
 
-1. the original R2 substrate design remains the base design;
+1. the primary R2 substrate design remains the base design;
 2. this correction document is cumulative with it;
 3. where the two conflict, this document controls;
-4. the minimum `R2-SUBSTRATE-QUALIFIED` gate is the conjunction of the original acceptance set and every added obligation in this document;
+4. the minimum `R2-SUBSTRATE-QUALIFIED` gate is the conjunction of the primary design's current acceptance set and every added obligation in this document;
 5. `NOT_RUN`, unresolved, or unavailable evidence for a required obligation is not a pass.
 
 Nothing here authorizes implementation, package scaffolding, live machine access, active industrial discovery, machine writes, commissioning, deterministic control, deployment, merge, repository visibility change, licensing change, or another protected effect.
@@ -209,7 +209,7 @@ These are implementation qualification obligations. They do not convert R2 into 
 
 ## 10. Cumulative added acceptance obligations
 
-The following obligations are added to, and do not replace, the original R2 minimum acceptance set:
+The following obligations are added to, and do not replace, the primary R2 minimum acceptance set:
 
 1. reused locator with replacement source does not inherit learner state;
 2. same source moving locator retains state only with independent continuity evidence;
@@ -236,7 +236,7 @@ The following obligations are added to, and do not replace, the original R2 mini
 23. pacing-independent output/state is invariant under undeclared wall-clock pause/jitter perturbation;
 24. the implemented child process boundary mechanically proves no unintended evaluator truth path, inherited descriptor, rich environment, or untyped IPC channel reaches reviewed learner code.
 
-The original minimum acceptance set plus these 24 obligations is the current cumulative substrate gate for PR #3 source review. A future reviewer may reorganize the numbering, but no obligation may disappear merely because the document structure changes.
+The primary minimum acceptance set plus these 24 obligations is the current cumulative substrate gate for PR #3 source review. A future reviewer may reorganize the numbering, but no obligation may disappear merely because the document structure changes.
 
 ## 11. Review disposition requested
 
