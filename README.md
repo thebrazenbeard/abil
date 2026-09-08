@@ -10,6 +10,10 @@ The product thesis is simple:
 
 ABIL is intended to run alongside existing controls rather than replace them. It should ingest available operational signals, build a continually revised model of the particular system it is attached to, detect meaningful change, predict likely outcomes, expose uncertainty, and eventually recommend or execute tightly bounded actions through explicit safety controls.
 
+## Concept
+
+Client's equipment has a fucked OS → client realizes HMI control system for automated equipment is no longer supported → client calls me → I disconnect their PC from the system & network/wire in an ABIL mini-PC, ABIL mini-PC maps network and nodes, determines what those things to, and gives you manual controls over the equipment → ABIL mini-PC studies and learns the system while you manually activate and define the functions/purpose of the node/solenoid/sensor/whatever → ABIL mini-PC semi-automatically creates new automation control software to run the line → ABIL mini-PC becomes permanent replacement for original control OS
+
 ## Current status
 
 **Foundation / research / architecture. No production control code exists yet.**
