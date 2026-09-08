@@ -15,8 +15,10 @@ Every stage inherits these rules:
 - unknown or unobserved control behavior is not silently promoted;
 - unknown protective/interlock semantics are safety-relevant until independently classified;
 - each physical output/control namespace has exactly one authoritative ordinary-control writer at a time;
-- generated control remains an artifact until validation and explicit promotion;
-- independent safety systems remain authoritative unless a separate safety-engineering project explicitly changes that contract.
+- generated control remains a candidate until immutably bound to exact deployment/evidence/artifact/validation/rollback identities and explicitly promoted;
+- independent safety systems remain authoritative unless a separate safety-engineering project explicitly changes that contract;
+- physical safe-state/fallback behavior is target-specific rather than one universal `fail-closed` response;
+- promoted deterministic/manual recovery capability must not depend on the adaptive-learning plane remaining healthy.
 
 ## Stage 0 — Synthetic headless process
 
@@ -103,6 +105,8 @@ Promotion evidence includes exact target hardware/protocol/deployment identity, 
 
 Unknown protective/interlock semantics remain out of autonomous reconstruction and must not be bypassed.
 
+The manual/recovery surface should be architected so a later qualified version can remain usable even when adaptive-learning services are unavailable.
+
 ## Stage 6 — Machine-model reconstruction
 
 ABIL constructs an inspectable behavioral/control model from accumulated evidence.
@@ -125,7 +129,7 @@ Generation confers no machine authority.
 
 Every candidate must bind source machine-model/evidence version, target runtime/controller profile, exact protocol/I/O assumptions, control-authority locus, preserved safety interfaces/handshakes, unresolved assumptions, control-coverage ledger, and generated artifact identity.
 
-Any state, transition, permissive, timeout, recovery path, or ordinary interlock lacking sufficient support remains excluded, fail-closed, or technician-engineered rather than guessed into the executable envelope.
+Any state, transition, permissive, timeout, recovery path, or ordinary interlock lacking sufficient support remains excluded, outside authority, or technician-engineered rather than guessed into the executable envelope.
 
 ## Stage 8 — Replay, simulation, and shadow validation
 
@@ -153,7 +157,18 @@ Required evidence includes exact PLC/project/runtime identity, documented proxy 
 
 A validated control artifact may be promoted into limited real machine authority under explicit installation-specific authorization.
 
-Cutover must use an explicit authority-transfer state machine and mechanically enforced fencing. The package should include exact hardware/network/protocol/deployment identity, active control artifact/version, prior validation evidence, commissioning signoff, rollback/recovery procedure, watchdog/fail-closed behavior, alarm/fault evidence, declared operating envelope, reviewed safety-interface list, control-coverage ledger, and exact authority/promotion receipt.
+Cutover must use an explicit authority-transfer state machine and mechanically enforced fencing. The promotion package must immutably bind:
+
+- exact hardware/network/protocol/deployment identity;
+- active control artifact digest/version;
+- source machine-model/evidence version;
+- control-coverage ledger version;
+- prior validation evidence set and acceptance result;
+- preserved safety-interface/handshake inventory;
+- target-specific validated safe-state/fallback policy;
+- commissioning/authority signoff;
+- known-good rollback artifact/configuration;
+- exact authority/promotion receipt.
 
 Cutover is incomplete until the previous writer is mechanically unable to continue authoritatively writing the transferred output/control domain and the new writer's ownership is verified.
 
@@ -165,13 +180,17 @@ When coexistence with the legacy PLC/control system is impossible, undesirable, 
 
 This is not simply Stage 9 with the PLC removed.
 
-Evidence must include qualified fieldbus/driver stack and interface hardware, exact I/O ownership/configuration, deterministic I/O update timing, cycle/jitter/load measurements under worst relevant conditions, watchdog/communication-loss behavior, restart/resynchronization behavior, drive/actuator handling, alarm/fault paths, rollback/recovery, target-specific negative testing, complete control-coverage evidence for the promoted operating envelope, preserved safety interfaces, and proof of single-writer fencing.
+Evidence must include qualified fieldbus/driver stack and interface hardware, exact I/O ownership/configuration, deterministic I/O update timing, cycle/jitter/load measurements under worst relevant conditions, watchdog/communication-loss behavior, restart/resynchronization behavior, drive/actuator handling, alarm/fault paths, rollback/recovery, target-specific negative testing, complete control-coverage evidence for the promoted operating envelope, preserved safety interfaces, proof of single-writer fencing, immutable promotion binding, and target-specific safe-state/fallback qualification.
+
+The deterministic runtime must be tested with adaptive-learning/LLM/diagnostic services intentionally stopped or faulted to demonstrate that promoted control/manual recovery capability degrades according to the qualified design rather than collapsing with the intelligence plane.
 
 ## Stage 12 — Permanent ABIL control runtime and support lifecycle
 
 The ABIL appliance becomes the supported permanent ordinary-control computer for the installation.
 
-Long-run qualification should cover stable deterministic execution, versioned artifact upgrades, separation between ongoing learning and active control authority, update/rollback tooling, hardware replacement/recovery, backup/export of machine model/configuration/evidence/control-coverage/active artifact, service diagnostics, auditability, protocol/vendor dependencies, and ownership/fencing restoration after restart or appliance replacement.
+Long-run qualification should cover stable deterministic execution, versioned artifact upgrades, separation between ongoing learning and active control authority, update/rollback tooling, hardware replacement/recovery, backup/export of machine model/configuration/evidence/control-coverage/active artifact/promotion binding, service diagnostics, auditability, protocol/vendor dependencies, ownership/fencing restoration after restart or appliance replacement, and target-specific safe-state/fallback behavior.
+
+The appliance must have learner-independent degraded modes. Failure, restart, upgrade, or intentional shutdown of adaptive-learning services must not by itself remove an already-qualified deterministic/manual recovery capability. Resource reservation and process isolation must prevent the intelligence plane from starving the deterministic runtime.
 
 A permanent installation should be maintainable as a product, not only understandable by the engineer who commissioned it.
 
@@ -179,7 +198,7 @@ A permanent installation should be maintainable as a product, not only understan
 
 ABIL should explicitly record why an installation remains with an existing PLC execution target or advances to direct ABIL control.
 
-Relevant considerations include controller/project accessibility, supportability/vendor lifecycle, hardware condition/obsolescence, fieldbus/protocol support, deterministic timing, maintainability, qualified ABIL adapter/runtime availability, licensing/proprietary-tool burden, rollback/recovery risk, commissioning labor, control-coverage completeness, safety-interface certainty, and customer lifecycle requirements.
+Relevant considerations include controller/project accessibility, supportability/vendor lifecycle, hardware condition/obsolescence, fieldbus/protocol support, deterministic timing, maintainability, qualified ABIL adapter/runtime availability, licensing/proprietary-tool burden, rollback/recovery risk, commissioning labor, control-coverage completeness, safety-interface certainty, learner-independent degraded-operation capability, and customer lifecycle requirements.
 
 The product should not replace a still-useful PLC merely because ABIL can. It should also not make a legacy PLC mandatory when that controller is the failed or unsupportable component.
 
@@ -187,7 +206,7 @@ The product should not replace a still-useful PLC merely because ABIL can. It sh
 
 ABIL should be scored on more than anomaly detection.
 
-Important measures include prediction, calibration/uncertainty, change/regime detection, retention/adaptation, topology discovery coverage, semantic-grounding efficiency, manual onboarding/commissioning labor, machine-specific learned structure, reconstructed control-model fidelity, control-coverage completeness, unknown-state count/quarantine, generated-control validation, held-out/negative transition performance, deterministic cycle/jitter/resource metrics, restart/checkpoint equivalence, recovery/rollback time, protocol portability, split-brain/fencing tests, operator usefulness, permanent supportability, and the ability to say `insufficient evidence`.
+Important measures include prediction, calibration/uncertainty, change/regime detection, retention/adaptation, topology discovery coverage, semantic-grounding efficiency, manual onboarding/commissioning labor, machine-specific learned structure, reconstructed control-model fidelity, control-coverage completeness, unknown-state count/quarantine, generated-control validation, held-out/negative transition performance, deterministic cycle/jitter/resource metrics, restart/checkpoint equivalence, recovery/rollback time, protocol portability, split-brain/fencing tests, immutable promotion-binding verification, learner-independent degraded-operation tests, operator usefulness, permanent supportability, and the ability to say `insufficient evidence`.
 
 ## Kill or material-revision conditions
 
@@ -203,6 +222,8 @@ The ABIL thesis should be materially revised if realistic testing shows that:
 - unobserved behavior cannot be bounded into a safe operating envelope;
 - direct control cannot meet target deterministic timing/reliability;
 - control ownership cannot be fenced against split-brain writers;
+- promoted control cannot be immutably bound to exact deployment/evidence/artifact/validation state;
+- deterministic/manual recovery capability cannot survive learner-service failure according to a qualified degraded-mode design;
 - protocol/vendor diversity makes each deployment a bespoke rewrite;
 - deployment/commissioning labor dominates the economic value;
 - uncertainty or safety-function classification remains too weak for trustworthy reconstruction;
