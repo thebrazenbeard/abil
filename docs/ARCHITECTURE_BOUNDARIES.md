@@ -39,166 +39,106 @@ Independent safety systems remain authoritative across all modes.
 The key architectural rules are:
 
 - **replacement-capable, coexistence-first**;
-- discovery, learning, semantic grounding, control synthesis, deterministic execution, and safety authority are distinct responsibilities;
+- discovery, learning, semantic grounding, control synthesis, deterministic execution, control ownership, and safety authority are distinct responsibilities;
 - a learning component does not receive production output authority merely because it can propose a command or generate control logic;
-- a new control revision becomes executable only through an explicit validation and promotion path.
+- a new control revision becomes executable only through an explicit validation and promotion path;
+- unknown or unobserved control behavior is not silently promoted;
+- each physical output/control namespace has exactly one authoritative ordinary-control writer at a time.
 
 ## 1. Discovery and industrial adapters
 
 Adapters translate equipment-specific interfaces into explicit internal evidence and capability contracts.
 
-Potential interfaces include:
+Potential interfaces include PLC/PAC tags and vendor configuration, OPC UA/DA, EtherNet/IP, PROFINET, Modbus TCP/RTU, DeviceNet, PROFIBUS, CAN/CANopen, historian data, drive/motion diagnostics, remote I/O, alarms/HMI events, cameras, vendor APIs/files, and serial or gateway-connected legacy devices.
 
-- PLC/PAC tags and vendor configuration;
-- OPC UA/DA;
-- EtherNet/IP;
-- PROFINET;
-- Modbus TCP/RTU;
-- DeviceNet;
-- PROFIBUS;
-- CAN/CANopen;
-- historian data;
-- drive and motion-controller diagnostics;
-- remote I/O;
-- alarms and HMI events;
-- maintenance records;
-- cameras or other vision sources;
-- vendor APIs or files;
-- serial or gateway-connected legacy devices.
+Adapter capability classes are distinct:
 
-An adapter may support one or more distinct capability classes:
+1. **Passive observation** — observe traffic/telemetry without introducing active query traffic.
+2. **Low-impact read/configuration access** — bounded authenticated reads with declared request rates and retry behavior.
+3. **Active discovery/enumeration** — browse, scan, broadcast, connection, or vendor-specific enumeration that can be operationally disruptive even without writes.
+4. **Commissioning/manual action capability** — issue explicitly bounded technician-authorized requests.
+5. **Deterministic control capability** — participate in qualified scan/update scheduling and command ordinary field I/O as part of an approved runtime.
 
-1. **Passive/read-only acquisition** — observe telemetry, status, traffic, or configuration without machine writes.
-2. **Topology/configuration discovery** — enumerate reachable devices, identities, assemblies/registers, relationships, or vendor configuration evidence.
-3. **Commissioning/manual action capability** — issue explicitly bounded technician-authorized requests for diagnostic or semantic-grounding purposes.
-4. **Deterministic control capability** — participate in scan/update scheduling and command ordinary field I/O as part of an approved control runtime.
+Qualification for one capability does not imply qualification for another. `Read-only` does not mean `operationally harmless`.
 
-Qualification for one capability does not imply qualification for another. A read-only EtherNet/IP adapter, for example, is not automatically a qualified deterministic control adapter.
+Active discovery adapters must declare target allowlists, scan/query budgets, rate limits, timeout/retry policy, known side effects, and failure behavior.
 
-Adapters must declare:
-
-- deployment/source identity;
-- protocol and interface identity;
-- timing/update semantics;
-- quality/status semantics;
-- read/write capability;
-- supplied semantic mappings;
-- configuration digest/version where applicable;
-- failure behavior.
+All adapters must declare deployment/source identity, protocol/interface identity, timing/update semantics, quality/status semantics, capability level, supplied semantic mappings, configuration digest/version where applicable, and failure behavior.
 
 An adapter must not silently convert evaluator, vendor, or engineer knowledge into learned machine relationships and then credit ABIL for discovering them.
 
-## 2. Machine-model / intelligence plane
+## 2. Control-authority locus
+
+Before ABIL plans replacement, it must distinguish what role the legacy component actually owns. At minimum the deployment model should represent:
+
+- `SUPERVISORY_HMI_ONLY`;
+- `SCADA_SUPERVISORY`;
+- `SOFT_PLC_OR_CONTROL_PC`;
+- `PLC_PAC_LOGIC`;
+- `MOTION_OR_DRIVE_CONTROL`;
+- `SAFETY_CONTROL`;
+- `MIXED`;
+- `UNKNOWN`.
+
+Unknown authority locus fails closed for takeover. Network presence or device identity is not proof of control authority.
+
+## 3. Machine-model / intelligence plane
 
 The intelligence plane owns machine-specific learned structure and evidence-oriented inference.
 
-It may support:
-
-- streaming observations;
-- persistent learned state;
-- action-conditioned prediction where action evidence exists;
-- explicit uncertainty;
-- regime/change detection;
-- online adaptation;
-- comparison against simple baselines;
-- retention of older recurring regimes;
-- competing hypotheses;
-- provenance sufficient to explain what evidence changed a model or hypothesis;
-- learned topology/temporal/behavioral relationships;
-- candidate control-model synthesis.
+It may support streaming observations, persistent learned state, action-conditioned prediction where action evidence exists, explicit uncertainty, regime/change detection, online adaptation, fair baseline comparison, recurring-regime retention, competing hypotheses, learned topology/temporal/behavioral relationships, and candidate control-model synthesis.
 
 The architecture should not assume one model family solves every installation. ABIL may combine conventional system identification, forecasting, representation learning, change-point detection, causal discovery, rules, symbolic state models, learned models, and Noema-derived mechanisms where justified.
 
-The intelligence plane may keep learning while the system is deployed. That does **not** mean it may continuously rewrite production control logic.
+The intelligence plane may keep learning while deployed. That does **not** mean it may continuously rewrite production control logic.
 
-## 3. Semantic grounding and guided commissioning
+## 4. Semantic grounding and guided commissioning
 
 Network discovery can identify nodes, addresses, types, tags, assemblies/registers, timing, and traffic patterns. It cannot be assumed to prove functional meaning such as `infeed_clamp_extend`, `station_complete`, or `index_ready`.
 
-Guided commissioning is therefore a first-class boundary.
-
-The preferred loop is:
+Guided commissioning is therefore first-class:
 
 `observe -> propose candidate relationship -> constrained technician action -> measure consequences -> technician confirm/correct semantics -> retain provenance -> update machine model`
 
-ABIL should support:
-
-- passive observation before actuation;
-- candidate signal/device grouping;
-- proposed relationships and discriminating tests;
-- bounded technician-authorized actuation where permitted;
-- recording the exact requested action and observed consequences;
-- explicit technician confirmation/correction;
-- provenance separating human-supplied labels from learned structure;
-- repeated evidence accumulation rather than one-shot semantic assignment.
+Operator command, learner proposal, gateway decision, action execution, execution receipt, and subsequent telemetry must remain separately represented. Human-supplied labels stay attributable and must not be credited as autonomous discovery.
 
 The target is **targeted semantic grounding**, not exhaustive hand-programming of every signal and relationship.
 
-## 4. Operator commissioning and diagnostics
+## 5. Operator commissioning and diagnostics
 
-The operator surface should expose useful machine state without pretending the model knows more than it does.
-
-Outputs should distinguish:
-
-- observed telemetry;
-- vendor/configuration evidence;
-- operator-supplied semantics;
-- learned relationships;
-- prediction;
-- residual/error;
-- anomaly/change evidence;
-- hypothesis;
-- uncertainty;
-- proposed additional observation/test;
-- requested action;
-- generated candidate control revision;
-- promoted/active control artifact.
+The operator surface should distinguish observed telemetry, vendor/configuration evidence, operator-supplied semantics, learned relationships, prediction, residual/error, anomaly/change evidence, hypothesis, uncertainty, proposed observations/tests, requested actions, generated candidate control revisions, control-coverage state, and promoted/active control artifacts.
 
 A language model may translate structured evidence into natural-language explanations, but the underlying evidence must remain independently inspectable. Generated prose is not machine truth.
 
-## 5. Control-model synthesis and validation
+## 6. Control-model synthesis and coverage
 
-ABIL should not equate "generate automation" with unconstrained source-code generation.
+ABIL should not equate `generate automation` with unconstrained source-code generation.
 
 The preferred intermediate artifact is an inspectable machine-control model containing, as applicable:
 
 - machine states and modes;
 - transitions;
-- requested actions;
+- commands/actions;
 - expected consequences;
 - prerequisites/permissives;
-- ordinary non-safety interlocks;
-- timers and timing windows;
+- ordinary interlocks independently classified as non-safety;
+- timers/timing windows;
 - alarm/fault conditions;
 - recovery paths;
 - manual/operator modes;
-- unresolved relationships and uncertainty.
+- unresolved relationships/uncertainty.
 
-A candidate control model must be attributable to the machine model/evidence version that produced it.
+Every candidate control artifact must also carry a **control-coverage ledger**. Each promoted state, transition, command, permissive, timeout, recovery path, and ordinary interlock must identify the evidence/requirements that support it and whether it was observed, technician-specified, vendor-specified, inferred, simulated, or tested.
 
-Validation may include:
+`Not observed` means `not authorized by inference alone`. Unknown or insufficiently covered behavior must fail closed, remain technician-engineered, or be explicitly excluded from the promoted operating envelope.
 
-- recorded replay;
-- simulator/digital-process comparison;
-- shadow comparison against a surviving controller;
-- technician review;
-- deterministic timing/resource qualification;
-- fault/alarm-path testing;
-- rollback/recovery testing.
+Replay similarity alone is insufficient. Validation should include held-out and negative-transition coverage where applicable, technician review, fault/alarm paths, restart/restore behavior, deterministic timing/resource qualification, and rollback/recovery testing.
 
 Only a validated, explicitly promoted control artifact may enter deterministic execution.
 
-The learned machine model and executable control artifact remain separate. A learned insight may propose a new control revision; it does not silently mutate the active runtime.
+## 7. Existing PLC coexistence roles
 
-## 6. Existing PLC coexistence roles
-
-An existing PLC may be treated as one or more of:
-
-- evidence/configuration source;
-- source of observed ordinary control behavior;
-- deterministic execution proxy;
-- permanent execution target;
-- replaceable legacy controller.
+An existing PLC may be an evidence/configuration source, source of observed control behavior, deterministic execution proxy, permanent execution target, or replaceable legacy controller.
 
 Default behavior is to preserve and work with surviving PLC logic when practical.
 
@@ -206,57 +146,54 @@ A useful transitional architecture is **PLC execution proxy mode**: ABIL owns mo
 
 Direct rewriting of an installed vendor project is target-specific, not ABIL's universal onboarding method. Hardware configuration, I/O ownership, produced/consumed data, motion, fieldbus master configuration, firmware, passwords/protection, safety signatures, licenses, and proprietary project formats can all make vendor-project mutation inappropriate or impractical.
 
-ABIL's universal goal is to reconstruct and support the machine's ordinary control function, not to depend on overwriting proprietary internals.
-
-## 7. Deterministic control runtime
+## 8. Deterministic control runtime
 
 When coexistence is impossible, undesirable, unsupported, unreliable, failed, locked, or uneconomic, ABIL may replace the ordinary control function with a separately engineered deterministic runtime.
 
-The deterministic runtime is responsible for:
+The deterministic runtime is responsible for approved machine state/sequence execution, deterministic timers, bounded command handling, ordinary process permissives/interlocks, I/O scan/update scheduling, protocol-specific I/O semantics, watchdog behavior, timeout/fail-closed or declared fallback behavior, alarm/fault reporting, execution evidence, restart/recovery behavior, and exact active artifact identity.
 
-- approved machine state/sequence execution;
-- deterministic timers;
-- bounded command handling;
-- ordinary process permissives/interlocks;
-- I/O scan/update scheduling;
-- protocol-specific input/output semantics;
-- watchdog behavior;
-- timeout/fail-closed or declared fallback behavior;
-- alarm/fault reporting;
-- execution-state/evidence logging;
-- restart/recovery behavior;
-- exact active artifact/version identity.
+The runtime executes a promoted control artifact. It must not contain a general-purpose learner or LLM that can freely change control behavior during execution.
 
-The deterministic runtime executes a promoted control artifact. It should not contain a general-purpose learner or LLM that can freely change control behavior during execution.
+Direct remote-I/O takeover requires exact hardware/protocol/deployment identity, timing/resource evidence, qualified drivers/adapters, control-coverage evidence, rollback/recovery evidence, fenced control ownership, and explicit target-specific authorization.
 
-Direct remote-I/O takeover is a capability promotion requiring exact hardware/protocol/deployment identity, timing/resource evidence, qualified drivers/adapters, rollback/recovery evidence, and explicit authorization for the target installation.
+## 9. Single-writer control ownership
 
-This document does not yet select the runtime language, scheduler, RTOS, real-time kernel strategy, fieldbus stack, or HMI framework.
+For every physical output/control namespace, exactly one authoritative ordinary-control writer may exist at a time.
 
-## 8. Safety and action authority
+A surviving PLC, HMI, ABIL commissioning gateway, PLC proxy, and ABIL direct runtime must not rely on convention alone to avoid split-brain writes.
+
+The ownership contract must define:
+
+- ownership domains;
+- current authoritative writer identity;
+- acquisition/release conditions;
+- physical, protocol, configuration, or credential fencing;
+- stale-command/writer rejection;
+- restart and partial-failure behavior;
+- rollback/fallback semantics;
+- exact transfer-of-authority receipts.
+
+Cutover is not complete until the previous writer is mechanically unable to continue authoritatively writing the transferred domain and the new writer's ownership is verified.
+
+## 10. Safety and action authority
 
 Ordinary control reconstruction does **not** silently authorize safety-system reconstruction.
 
 Existing safety PLCs, safety relays, E-stops, guard circuits, hardwired interlocks, drive safety functions, machine-protection circuits, and other independent protective systems remain authoritative unless a separate explicitly engineered safety project changes that contract.
 
-ABIL may observe safety state and require it as a prerequisite for ordinary control behavior. It must not infer certified safety requirements merely from observed operation and then claim equivalent protection.
+On an undocumented machine, a permissive, relay contact, reset handshake, drive-enable path, gate condition, safe-speed input, or PLC-to-safety handshake may have unknown protective meaning.
 
-Any write-capable commissioning or control path must be independently constrained according to its capability level. Controls may include:
+The default classification rule is:
 
-- explicit allowlists;
-- hard ranges/rate limits;
-- state prerequisites;
-- independent interlocks;
-- human approval requirements;
-- action logging;
-- request freshness/replay protection;
-- timeout/reversion behavior;
-- immediate disable/bypass;
-- external read-only or write-denial enforcement where applicable.
+> **Unknown protective/interlock semantics are safety-relevant and out of scope for autonomous reconstruction until independently classified by qualified engineering evidence.**
 
-The safety/action boundary must not depend on the learning model behaving correctly.
+ABIL may observe such state and preserve it as a prerequisite, but it may not downgrade it to ordinary control merely because the machine operated successfully or because the signal appears inside standard PLC logic.
 
-## 9. Read-only first
+Direct takeover and generated-control promotion must bind a reviewed list of preserved safety interfaces/handshakes and show that ordinary-controller replacement cannot bypass or defeat them.
+
+Any write-capable path must be independently constrained with capability-appropriate allowlists, ranges/rate limits, state prerequisites, freshness/replay protection, logging, timeout/reversion behavior, and immediate disable/bypass.
+
+## 11. Read-only first
 
 The first live field deployment should have no control authority.
 
@@ -264,59 +201,48 @@ Read-only shadow mode remains an important evidence stage because ABIL must firs
 
 Read-only is a qualification stage and product wedge, not the final product boundary.
 
-## 10. Persistent machine/deployment state
+## 12. Persistent machine/deployment state
 
-The valuable ABIL state is created during discovery, learning, commissioning, synthesis, and operation. It should not be assumed to pre-exist before ABIL arrives at a machine.
+The valuable ABIL state is created during discovery, learning, commissioning, synthesis, validation, and operation. It should not be assumed to pre-exist before ABIL arrives.
 
-Persistent state may include distinct versioned records for:
+Persistent state may include versioned records for discovered topology, control-authority locus, device/source/signal identities, adapter/protocol configuration, operator semantics with provenance, learned machine model and uncertainty, evidence/history, control-coverage ledger, candidate control models, validation receipts, promoted control artifact/version, control-ownership/fencing state, deterministic runtime configuration, deployment identity, and software/schema/config versions.
 
-- discovered topology;
-- device/source/signal identities;
-- adapter/protocol configuration;
-- operator-supplied semantics and corrections with provenance;
-- learned machine model and uncertainty;
-- regime/context history;
-- evidence/history frontier;
-- candidate control models;
-- validation receipts/results;
-- promoted control artifact/version;
-- deterministic runtime configuration;
-- deployment/source identity;
-- software/schema/config versions.
+Copying/restoring state across machines requires an explicit compatibility/migration operation. Ordinary restore must fail closed on incompatible identity/binding.
 
-A checkpoint or machine package must bind enough identity and compatibility information to prevent silent attachment of learned/control state to the wrong machine or incompatible runtime.
+## 13. Evidence, causation, and early-substrate boundaries
 
-Copying/restoring state from one installation to another requires an explicit transfer/migration operation with defined semantics.
+ABIL must not equate correlation with causation. Passive data may support prediction while leaving causal direction unresolved.
 
-## 11. Evidence, causation, and claim ceilings
+Technician-guided interventions can strengthen evidence, but human actions, annotations, tag names, vendor metadata, timing, quality, and action-origin labels must remain separately attributed.
 
-ABIL must not equate correlation with causation.
+The corrected early substrate should preserve separate evaluator records, a closed typed learner projection, and scoring-only evaluation joins. Learner/plugin code must have no hidden object/API/capability path to evaluator truth.
 
-Passive data may support prediction while leaving causal direction unresolved. ABIL should be able to maintain multiple explanations and say that evidence is insufficient.
+Transport/device status, externally supplied confidence/annotation, and learner/model uncertainty are distinct evidence classes.
 
-Technician-guided interventions can strengthen causal evidence, but human actions, annotations, tag names, vendor metadata, and action-origin labels must remain separately attributed. ABIL must not claim to have discovered structure that was supplied directly through privileged semantics.
+Raw learner events remain asynchronous; feature assembly is separately versioned and deterministic under replay.
 
-Where a claim depends on supplied timing, quality, identity, labels, or annotations, the claim scope should say so.
+Substrate qualification and learner efficacy are separate gates. A valid substrate must be able to report that a simple baseline wins.
 
-## 12. Brownfield onboarding principle
+## 14. Brownfield onboarding principle
 
 Custom integration labor is a commercial risk.
 
 The desired progression is:
 
-1. discover/import available devices and signals;
-2. normalize identity/timing/provenance;
-3. learn statistical and temporal structure without requiring names for everything;
-4. surface candidate groupings/relationships;
-5. invite targeted human labeling and bounded commissioning actions where useful;
-6. retain human semantics separately from learned structure;
-7. synthesize an inspectable machine/control model;
-8. preserve the existing controller when it is the best execution path;
-9. replace ordinary control only when evidence supports that migration.
+1. passively observe where possible;
+2. use bounded active discovery only under a declared capability profile;
+3. discover/import available devices and signals;
+4. normalize identity/timing/provenance;
+5. learn statistical and temporal structure without requiring names for everything;
+6. invite targeted human labeling and bounded commissioning actions where useful;
+7. retain human semantics separately from learned structure;
+8. synthesize an inspectable machine/control model with explicit coverage and unknowns;
+9. preserve the existing controller when it is the best execution path;
+10. replace ordinary control only when evidence supports that migration.
 
 If every deployment requires essentially full conventional reverse engineering before ABIL contributes useful structure, the product thesis has failed or narrowed into a controls-integration consultancy.
 
-## 13. No hidden product coupling to Noema
+## 15. No hidden product coupling to Noema
 
 Noema is not a runtime dependency of ABIL.
 
