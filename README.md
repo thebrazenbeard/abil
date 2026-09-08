@@ -34,6 +34,8 @@ The default strategy is therefore **replacement-capable, coexistence-first**.
 
 The repository currently contains the product thesis, architecture boundaries, validation strategy, competitive reality check, the frozen first F0 learning-substrate design, and a successor control-reconstruction architecture. Claims remain hypotheses until demonstrated empirically.
 
+The successor architecture is ready for independent review. The immediate review target is the architecture/documentation itself plus the shape of the corrected R2 early-substrate contract; it is not authorization to build write-capable commissioning or production control yet.
+
 ## Product direction
 
 The initial commercial target is brownfield industrial equipment with some combination of:
