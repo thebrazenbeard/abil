@@ -23,10 +23,10 @@ The design also assumes the broader coexistence-first/replacement-capable produc
 
 R2 will be a local Python 3.12 development/runtime substrate composed of two installable distributions in one repository:
 
-1. **`abil-core`** — learner-facing contracts, deterministic feature assembly, learner interfaces/baselines, safe checkpointing, learner worker process, and learner-side CLI utilities.
-2. **`abil-eval`** — evaluator records, synthetic/replay adapters, learner projection, qualification orchestration, scoring, negative controls, and the developer qualification CLI.
+1. **`abil-core`** — learner-facing contracts, deterministic feature assembly, learner interfaces/baselines, bounded learner-state codecs, learner worker process, and learner-side CLI utilities.
+2. **`abil-eval`** — evaluator records, synthetic/replay adapters, learner projection, outer checkpoint binding, qualification orchestration, scoring, negative controls, qualification receipts, and the developer qualification CLI.
 
-The evaluator runs the learner in a freshly executed isolated child process whose environment contains `abil-core` but not `abil-eval`. Hidden evaluator truth is retained outside the learner process. The learner receives only serialized learner-visible records or derived feature frames through the declared boundary.
+The evaluator runs the learner by fresh process execution. The qualification child environment contains `abil-core` but not `abil-eval`, receives only declared learner-visible bytes/state, and has no object/API path back into evaluator truth.
 
 This is deliberately stronger than putting a simulator object and learner object in the same Python process and relying on discipline not to traverse hidden state.
 
@@ -42,9 +42,9 @@ A package-first design is preferred because it:
 - lets the same core wheel later run inside a service or appliance without making daemon behavior part of the first qualification problem;
 - keeps R2 free of live machine connections and write-capable dependencies.
 
-A service-first daemon is deferred because persistence, restart supervision, networking, update policy, and appliance lifecycle would add failure modes that are not needed to close the frozen F0 information-boundary defects.
+A service-first daemon is deferred because persistence supervision, networking, update policy, and appliance lifecycle would add failure modes that are not needed to close the frozen F0 information-boundary defects.
 
-A same-process monolith is rejected because evaluator/learner object sharing would recreate the exact capability-leakage class that failed frozen F0 review.
+A same-process monolith is rejected because evaluator/learner object sharing would recreate the capability-leakage class that failed frozen F0 review.
 
 ## 4. Scope
 
@@ -57,7 +57,7 @@ R2 includes:
 - prequential prediction/evidence ordering;
 - synthetic and recorded replay through the same learner projection;
 - established online baselines before novel learner credit;
-- safe deployment/source/config-bound checkpoint and restore;
+- safe outer checkpoint binding plus bounded learner-state serialization;
 - deterministic replay/restart equivalence testing;
 - timing-oracle controls;
 - opaque-label and hidden-truth negative controls;
@@ -91,14 +91,16 @@ The evaluator process owns information that may include:
 
 - fixture hidden state;
 - regime/fault truth;
-- source/deployment identity;
+- rich source/deployment identity;
 - rich provenance;
 - simulator seed and schedule;
-- target labels used only for scoring;
+- hidden scoring labels not otherwise part of learner evidence;
 - semantic mapping used only for evaluator analysis;
 - corpus and fixture control metadata;
 - raw adapter/device quality and transport diagnostics;
 - learner projection configuration.
+
+An observed target measurement used for online prediction is different from hidden evaluator truth: it becomes learner-visible only through the normal event stream and only **after** the prediction point when prequential learning requires it.
 
 Evaluator records may be rich because they are not learner input.
 
@@ -122,36 +124,81 @@ A field's existence in `EvaluatorRecord` never implies learner visibility.
 
 The learner process is started by fresh process execution, not by fork inheritance of evaluator memory.
 
-Its environment receives:
+Qualification execution uses:
 
-- the `abil-core` distribution;
-- the exact learner implementation/config;
-- serialized `LearnerEvent` input;
-- only declared learner-side checkpoint material;
+- an environment containing `abil-core` only;
+- a scratch working directory rather than the repository/evaluator working directory;
+- a sanitized environment-variable allowlist;
+- no evaluator truth path supplied by argument, environment, checkpoint, or protocol;
+- only declared standard streams/control descriptors;
+- serialized `LearnerEvent` input and declared learner-side state;
 - a bounded output channel for predictions/evidence.
 
 It does not receive:
 
-- the `abil-eval` package;
+- the `abil-eval` package as an import dependency;
 - evaluator objects;
-- evaluator truth files or paths;
+- evaluator truth records/files/paths;
 - fixture seed/schedule;
-- scoring labels;
+- hidden scoring labels;
 - semantic mapping files;
 - raw rich source metadata;
 - a handle back into the evaluator process.
 
 The evaluator must not import learner plugins into its hidden-truth object graph and then hand those objects to plugin code.
 
-### 5.4 Scoring join
+### 5.4 R2 learner-code threat model
+
+R2 qualifies architectural/capability separation for **reviewed learner code**, not an arbitrary hostile third-party code-execution sandbox.
+
+The R2 claim is that the declared learner interface, process launch, state, and data paths provide no evaluator/world object or hidden-truth capability. R2 does not claim that malicious code running as the same operating-system user could never inspect unrelated files or exploit the host.
+
+If ABIL later accepts untrusted third-party learner plugins, that requires a separate sandbox/isolation design and qualification. That future requirement must not be inferred as already satisfied by R2 process separation.
+
+### 5.5 Scoring join
 
 Scoring is a separate evaluator-side operation.
 
-`EvaluationJoin` associates learner outputs with hidden evaluator truth only after the learner output exists. Learner/plugin code cannot traverse the join back to hidden truth.
+`EvaluationJoin` associates learner outputs with evaluator evidence only after the learner output exists. Learner/plugin code cannot traverse the join back to hidden truth.
 
-## 6. Core record model
+## 6. Run-control versus learner-task manifests
 
-### 6.1 `EvaluatorRecord`
+R2 separates the rich run-control manifest from the learner task configuration.
+
+### 6.1 `RunManifest` — evaluator/control side
+
+May bind:
+
+- rich fixture/corpus/deployment identity;
+- adapter/parser identity;
+- source digests;
+- evaluator seed/schedule;
+- projection profile;
+- timing profile;
+- learner wheel/config identity;
+- feature-assembly profile;
+- checkpoint compatibility identity;
+- scoring/negative-control configuration;
+- resource qualification profile.
+
+It is not learner input.
+
+### 6.2 `LearnerTaskManifest` — learner side
+
+Contains only what the learner needs to execute the declared task, such as:
+
+- learner implementation/config;
+- opaque target stream/channel identity;
+- learner-event schema ID;
+- timing visibility profile;
+- feature-assembly configuration;
+- opaque stream-set/frontier information required for state continuity.
+
+It contains no rich deployment/device identity, semantic mapping, fixture truth, or scoring labels.
+
+## 7. Core record model
+
+### 7.1 `EvaluatorRecord`
 
 Evaluator-side source records may include rich fields such as:
 
@@ -168,7 +215,7 @@ Evaluator-side source records may include rich fields such as:
 
 `EvaluatorRecord` is not a learner schema.
 
-### 6.2 `LearnerEvent`
+### 7.2 `LearnerEvent`
 
 The default R2 learner schema is intentionally narrow.
 
@@ -182,7 +229,7 @@ event_id
 event_seq
 value
 observation_status?   # only if projection profile explicitly allows it
-relative_time_delta? # only if timing profile explicitly allows it
+relative_time_delta?  # only if timing profile explicitly allows it
 ```
 
 Rules:
@@ -191,7 +238,7 @@ Rules:
 - `channel_id` is scoped within `learner_stream_id`;
 - bare short channel names are never assumed globally unique;
 - `event_id` is an opaque stable identity for duplicate/replay detection and contains no readable plant semantics;
-- `event_seq` is monotonic within a learner stream and represents ordering, not globally meaningful plant identity;
+- `event_seq` is allocated from a monotonic sequence domain within a learner stream, but physical/recorded arrival may be out of order relative to that sequence;
 - `value` in the first R2 slice is a finite scalar numeric/boolean value; arbitrary strings and object payloads are out of scope;
 - unknown fields fail closed;
 - no arbitrary metadata bag exists;
@@ -200,7 +247,15 @@ Rules:
 
 If two records claim the same `(learner_stream_id, event_seq)` with different `event_id` or different canonical value bytes, the substrate treats that as a source conflict rather than silently replacing one record.
 
-### 6.3 Human semantics and future action evidence
+### 7.3 Opaque identifier construction
+
+Learner-visible IDs must not be a direct unsalted hash of readable device/tag/address strings that could be dictionary-reversed.
+
+The evaluator creates corpus/run-local opaque namespaces and mappings. Stable replay identity may be deterministically derived from already-opaque namespace/stream/sequence subjects, while the rich-to-opaque mapping remains evaluator-side.
+
+The exact construction is part of the projection profile and qualification evidence.
+
+### 7.4 Human semantics and future action evidence
 
 Human semantic annotations are excluded from the default R2 learner projection.
 
@@ -208,7 +263,7 @@ A future experiment may add a separately typed, explicitly preregistered supplie
 
 R2 has no machine action path. Synthetic exogenous controls may be represented as ordinary opaque input channels when the experiment requires them. They are not labeled `ACTION_CONSEQUENCE`, and temporal observations after an input are not promoted to causal truth by schema.
 
-## 7. Identity model
+## 8. Identity model
 
 R2 preserves a strict separation between evaluator/runtime identity and learner-visible identity.
 
@@ -231,7 +286,7 @@ The mapping from rich evaluator source identity to learner-visible IDs is evalua
 
 IP address, PLC slot, node number, assembly/register, tag path, source filename, device serial, or other rich provenance never becomes the learner primary key merely because it exists.
 
-## 8. Timing and schedule-oracle control
+## 9. Timing and schedule-oracle control
 
 Frozen F0 used fixed timing/origin and a deterministic regime split that could become an unintended oracle. R2 makes timing visibility an explicit experiment capability.
 
@@ -254,13 +309,13 @@ Required timing controls include:
 
 If a timing field is supplied to the learner, the result is credited only to the declared timing profile rather than generalized to timing-blind performance.
 
-## 9. Asynchronous event and feature assembly contract
+## 10. Asynchronous event and feature assembly contract
 
 R2 does not assume all channels form a clean synchronous row at one timestamp.
 
-Raw learner events remain an ordered asynchronous stream. Feature construction is a separately versioned deterministic contract.
+Raw learner events remain an ordered ingress stream. Feature construction is a separately versioned deterministic contract.
 
-### 9.1 Default assembler behavior
+### 10.1 Default assembler behavior
 
 The first R2 assembler maintains last-known learner-visible channel state and processes events in accepted ingress order.
 
@@ -278,7 +333,7 @@ This enforces prequential ordering and prevents current-target leakage.
 
 Events from other channels update available feature state when they are accepted.
 
-### 9.2 Duplicate, late, reordered, and missing events
+### 10.2 Duplicate, late, reordered, and missing events
 
 The assembler/ingress contract must define and test:
 
@@ -292,7 +347,7 @@ The assembler/ingress contract must define and test:
 
 The default R2 replay path uses the corpus's declared canonical ingress sequence. If the original source lacks trustworthy arrival ordering and an adapter derives a total order, that ordering policy is part of the adapter/corpus manifest and claim ceiling.
 
-### 9.3 `FeatureFrame`
+### 10.3 `FeatureFrame`
 
 A feature frame binds:
 
@@ -306,7 +361,7 @@ A feature frame binds:
 
 The learner never receives a feature derived from an event that occurs after the prediction frontier.
 
-## 10. Replay and corpus identity
+## 11. Replay and corpus identity
 
 Recorded replay uses the same evaluator-to-learner projection as synthetic runs.
 
@@ -326,7 +381,7 @@ Original-speed and accelerated replay must produce identical analytical learner-
 
 If a learner is intentionally allowed wall-clock pacing evidence, that experiment is a distinct profile and cannot claim pacing invariance.
 
-## 11. Baseline and learner interface
+## 12. Baseline and learner interface
 
 R2 requires established baselines before a novel learner can earn complexity.
 
@@ -345,11 +400,11 @@ Learner-specific preprocessing is allowed only when it is part of that learner's
 
 No learner receives a better evaluator projection than its competitors unless the experiment explicitly compares evidence profiles as the independent variable.
 
-## 12. Substrate qualification versus learner efficacy
+## 13. Substrate qualification versus learner efficacy
 
 R2 has two separate gates.
 
-### 12.1 `R2-SUBSTRATE-QUALIFIED`
+### 13.1 `R2-SUBSTRATE-QUALIFIED`
 
 This gate asks whether the experimental/runtime substrate is honest, deterministic, restart-safe, bounded, and implementation-ready.
 
@@ -362,7 +417,7 @@ It may pass even when:
 
 A substrate result must never be upgraded to learner efficacy merely because the plumbing passed.
 
-### 12.2 `R2-LEARNER-EFFICACY`
+### 13.2 `R2-LEARNER-EFFICACY`
 
 This separate gate asks whether a particular learner earns stronger product/learning claims.
 
@@ -374,12 +429,12 @@ Stronger efficacy claims require, as applicable:
 - calibrated or otherwise defensible uncertainty/change behavior;
 - performance under opaque-label/semantic-ablation controls when the claim is semantic independence;
 - at least one inspectable nontrivial machine-specific learned-structure artifact rather than only a scalar score;
-- a second fixture/corpus onboarding run using the generic substrate without core-code changes, with configuration/semantic setup burden recorded;
+- a second fixture/corpus onboarding run through the existing generic replay/configuration path with **zero code edits** to `abil-core` or `abil-eval`, with configuration/semantic setup burden recorded;
 - evidence that supplied names/annotations are not being credited as autonomous discovery.
 
 Failure of learner efficacy does not retroactively fail a structurally honest substrate.
 
-## 13. Opaque-label and semantic-ablation controls
+## 14. Opaque-label and semantic-ablation controls
 
 The qualification tooling must be able to transform an evaluator fixture/corpus so that learner-visible stream/channel IDs are deterministically remapped to opaque labels while preserving event/value/order structure.
 
@@ -392,7 +447,7 @@ For substrate qualification, the transform must prove that:
 
 For learner-efficacy claims, the performance requirement is claim-specific. A learner that collapses when tag semantics disappear cannot be credited with semantics-independent machine-structure learning.
 
-## 14. Evaluator noninterference qualification
+## 15. Evaluator noninterference qualification
 
 R2 must include a deterministic whole-path noninterference test.
 
@@ -400,43 +455,64 @@ Construct paired evaluator runs in which:
 
 - learner-visible canonical event bytes are identical;
 - evaluator-only hidden regime/fault labels or other withheld truth differ;
-- the learner process starts from the same code/config/checkpoint state.
+- the learner process starts from the same code/config/learner-state subject.
 
 Required result:
 
 - learner ingress bytes are identical;
 - learner predictions/evidence outputs are identical;
-- learner checkpoint bytes/digests are identical except for explicitly non-semantic creation metadata that is normalized out of the comparison;
+- learner-state payload bytes/digests are identical except for explicitly non-semantic metadata held outside the learner payload;
 - only evaluator scoring/interpretation may differ.
 
 Any learner-output difference caused solely by evaluator-only truth mutation is a qualification failure.
 
-## 15. Checkpoint and restore contract
+## 16. Two-layer checkpoint and restore contract
 
 Checkpoint authority is compatibility/state continuity only. It carries no machine-control authority.
 
-### 15.1 Envelope identity
+R2 separates rich control-plane compatibility binding from learner-visible state so checkpoint trust does not become a provenance oracle.
 
-A checkpoint binds at least:
+### 16.1 `CheckpointManifest` — evaluator/control side
 
-- checkpoint schema/version;
+The outer manifest binds at least:
+
+- checkpoint manifest schema/version;
 - checkpoint ID;
-- exact learner implementation/version/config digest;
-- learner state codec/version;
-- learner-event schema ID;
-- projection profile digest;
+- rich deployment/fixture/source binding where applicable;
+- adapter/parser version/config digest;
+- corpus/fixture identity where applicable;
+- evaluator projection profile/schema digest;
 - timing profile;
 - feature-assembly version/config digest;
-- adapter/source profile digest;
-- corpus/fixture identity where replay/synthetic identity is relevant;
+- exact learner implementation/version/config digest;
+- learner wheel/software build identity;
+- learner-state codec/version;
 - opaque learner stream-set digest;
-- source-scoped frontier for every active learner stream;
-- software/build identity;
+- source-scoped frontier digest/map;
+- inner learner-state payload digest;
 - payload length/shape bounds;
-- payload digest/integrity value;
-- creation metadata retained outside learner features.
+- local integrity metadata;
+- creation metadata.
 
-### 15.2 Safe serialization
+The outer manifest is validated by `abil-eval` before learner state is supplied to the child process. Rich deployment, adapter, corpus, and physical-source identity in this manifest is not learner feature input.
+
+### 16.2 `LearnerStateEnvelope` — learner side
+
+The inner learner-visible state contains only what is necessary to restore the learner itself:
+
+- learner-state schema/version;
+- learner implementation/config identity;
+- learner-state codec/version;
+- opaque stream/channel/frontier state;
+- feature-assembler state needed for exact continuation;
+- learner/model/change-detector state;
+- deterministic RNG state when the declared learner requires it;
+- bounded payload lengths/shapes;
+- inner payload digest.
+
+It does not contain rich deployment/device/address/tag/corpus semantics or evaluator truth.
+
+### 16.3 Safe serialization
 
 Generic Python `pickle`, `marshal`, or arbitrary executable object deserialization is not an accepted R2 checkpoint codec.
 
@@ -444,31 +520,33 @@ Each learner must expose a typed bounded state codec. Acceptable first-slice tec
 
 Checkpoint decoding must enforce declared size, type, array-shape, and version bounds before constructing learner state.
 
-### 15.3 Restore rules
+### 16.4 Restore rules
 
-Restore mechanically rejects, absent a separately designed migration operation:
+The evaluator/control layer mechanically rejects, absent a separately designed migration operation:
 
-- wrong deployment/fixture/source binding where that binding is required;
-- wrong learner implementation/config;
-- wrong projection/timing/assembly profile;
-- wrong event schema;
+- wrong deployment/fixture/source binding where required;
 - wrong adapter/source profile;
+- wrong projection/timing/assembly profile;
+- wrong learner implementation/config;
+- wrong event/state schema;
 - unknown codec/version;
-- corrupt or tampered payload;
+- corrupt/tampered outer or inner payload;
 - stale frontier that would silently duplicate already-consumed events;
 - frontier ahead of available replay/source evidence;
 - stream-set mismatch;
-- incompatible software/schema identity.
+- incompatible software/build identity.
+
+Only after outer compatibility succeeds is the inner learner state supplied to the worker.
 
 R2 does not define cross-machine model transfer. A transfer/migration capability is a separate future design.
 
-### 15.4 Restart equivalence
+### 16.5 Restart equivalence
 
-For a deterministic learner and run profile, uninterrupted execution and execution interrupted by checkpoint/restore at declared cut points must produce equivalent subsequent predictions, learner state digest, evaluation results, and source frontier.
+For a deterministic learner and run profile, uninterrupted execution and execution interrupted by checkpoint/restore at declared cut points must produce equivalent subsequent predictions, learner-state digest, evaluation results, and source frontier.
 
 Qualification uses multiple cut points, including around regime changes and around duplicate/late-event cases.
 
-## 16. Runtime, queue, resource, and overload contract
+## 17. Runtime, queue, resource, and overload contract
 
 R2 must measure resource behavior and must not convert overload into silent evidence loss.
 
@@ -499,9 +577,9 @@ Each qualification run records:
 
 The implementation plan must preregister concrete numeric resource profiles before performance qualification is run. Those numbers are engineering test targets, not product performance claims. Until measured on an identified reference environment, resource status remains `PROPOSED / UNMEASURED`.
 
-## 17. Qualification receipts and reproducibility
+## 18. Qualification receipts and reproducibility
 
-Every substrate or learner-efficacy run emits a machine-readable `QualificationReceipt`.
+Every substrate or learner-efficacy run emits an evaluator-side machine-readable `QualificationReceipt`.
 
 It binds at least:
 
@@ -523,9 +601,9 @@ It binds at least:
 - limitations/claim ceiling;
 - output artifact digests.
 
-A human-readable summary may be generated from the receipt, but the summary is not the qualification authority.
+The receipt is not learner input. A human-readable summary may be generated from it, but the summary is not the qualification authority.
 
-## 18. Minimum `R2-SUBSTRATE-QUALIFIED` acceptance set
+## 19. Minimum `R2-SUBSTRATE-QUALIFIED` acceptance set
 
 The substrate gate requires fresh evidence for all of the following:
 
@@ -533,31 +611,33 @@ The substrate gate requires fresh evidence for all of the following:
 2. no unrestricted evaluator metadata crosses the projection;
 3. synthetic and replay paths use the same learner projection contract;
 4. hidden-truth mutation with identical learner-visible bytes leaves learner outputs/state unchanged;
-5. learner/plugin code receives no evaluator/world object or hidden-truth capability path;
+5. reviewed learner/plugin code receives no evaluator/world object or declared hidden-truth capability path;
 6. source-scoped IDs tolerate duplicate short channel names across streams without collision;
-7. rich physical/source identity can change while an explicitly unchanged learner projection remains unchanged;
-8. transport/device status remains separately attributed from learner/model uncertainty;
-9. `ORDER_ONLY` timing tests survive absolute-origin changes and held-out regime schedules without hidden timing fields appearing;
-10. raw asynchronous events do not require timestamp-row synchrony;
-11. prequential tests prove target value is unavailable before prediction;
-12. duplicate, sequence-conflict, missing, late, and reordered-event cases have deterministic declared outcomes;
-13. replay corpus identity and canonical learner-event digest are stable;
-14. original and accelerated replay are equivalent for pacing-independent profiles;
-15. wrong-identity, corrupt, stale, ahead, mismatched, and incompatible checkpoints are mechanically rejected;
-16. uninterrupted and checkpoint/restored runs are equivalent at multiple cut points;
-17. checkpoint decoding uses bounded non-executable state codecs;
-18. every baseline and learner receives the same declared event/frame sequence for paired comparison;
-19. the harness can validly report `simple baseline wins` without treating that as substrate failure;
-20. opaque-label transformation runs without learner access to the mapping;
-21. a second replay fixture can be configured/onboarded through generic substrate/configuration paths without modifying `abil-core` logic, and the setup burden is recorded;
-22. queues/buffers are bounded and overload cannot silently produce a valid run;
-23. CPU/memory/disk/throughput/checkpoint/restore evidence is emitted under a preregistered resource profile;
-24. the implementation contains no industrial machine-write client/path and no live-machine capability is implied by the result;
-25. one complete `QualificationReceipt` is recomputable from retained run artifacts and digests.
+7. learner IDs are opaque mappings rather than reversible/readable physical provenance;
+8. rich physical/source identity can change while an explicitly unchanged learner projection remains unchanged;
+9. transport/device status remains separately attributed from learner/model uncertainty;
+10. `ORDER_ONLY` timing tests survive absolute-origin changes and held-out regime schedules without hidden timing fields appearing;
+11. raw asynchronous events do not require timestamp-row synchrony;
+12. prequential tests prove target value is unavailable before prediction;
+13. duplicate, sequence-conflict, missing, late, and reordered-event cases have deterministic declared outcomes;
+14. replay corpus identity and canonical learner-event digest are stable;
+15. original and accelerated replay are equivalent for pacing-independent profiles;
+16. outer checkpoint binding cannot become learner-visible rich provenance;
+17. wrong-identity, corrupt, stale, ahead, mismatched, and incompatible checkpoints are mechanically rejected;
+18. uninterrupted and checkpoint/restored runs are equivalent at multiple cut points;
+19. checkpoint decoding uses bounded non-executable state codecs;
+20. every baseline and learner receives the same declared event/frame sequence for paired comparison;
+21. the harness can validly report `simple baseline wins` without treating that as substrate failure;
+22. opaque-label transformation runs without learner access to the mapping;
+23. a second replay fixture can be onboarded through existing generic replay/configuration paths with zero code edits to `abil-core` or `abil-eval`, and the setup burden is recorded;
+24. queues/buffers are bounded and overload cannot silently produce a valid run;
+25. CPU/memory/disk/throughput/checkpoint/restore evidence is emitted under a preregistered resource profile;
+26. the implementation contains no industrial machine-write client/path and no live-machine capability is implied by the result;
+27. one complete `QualificationReceipt` is recomputable from retained run artifacts and digests.
 
 A missing or `NOT_RUN` item in this minimum set means the substrate is not yet `R2-SUBSTRATE-QUALIFIED`.
 
-## 19. Learner-efficacy evidence contract
+## 20. Learner-efficacy evidence contract
 
 After substrate qualification, a learner may be evaluated under a separate exact source/config/corpus subject.
 
@@ -577,14 +657,14 @@ An efficacy result should retain at least:
 - prediction/change/adaptation metrics appropriate to the task;
 - recurrence/forgetting evidence where applicable;
 - opaque-label result where applicable;
-- second-fixture onboarding evidence;
+- second-fixture onboarding evidence with zero substrate code edits;
 - inspectable learned-structure artifact;
 - explicit uncertainty/insufficient-evidence behavior;
 - exact claim ceiling.
 
 The first R2 learner is allowed to fail this gate without invalidating the substrate.
 
-## 20. Proposed repository structure
+## 21. Proposed repository structure
 
 ```text
 pyproject.toml                  # uv workspace / root tooling
@@ -598,8 +678,7 @@ packages/
         events.py
         features.py
         predictions.py
-        checkpoints.py
-        receipts.py
+        learner_state.py
       assembly/
         base.py
         prequential.py
@@ -608,7 +687,7 @@ packages/
         baselines.py
       persistence/
         codec.py
-        checkpoint.py
+        learner_state.py
       worker.py
       cli.py
   abil-eval/
@@ -616,9 +695,12 @@ packages/
     src/abil_eval/
       __init__.py
       evaluator_records.py
+      manifests.py
       projection.py
       corpora.py
       replay.py
+      checkpoints.py
+      receipts.py
       fixtures/
         synthetic.py
       scoring.py
@@ -637,31 +719,32 @@ tests/
 
 The learner child environment installs `abil-core` only. The evaluator/orchestrator environment installs both distributions.
 
-## 21. CLI shape
+## 22. CLI shape
 
 The first operator is the developer/reviewer, not a plant operator.
 
 Representative commands:
 
 ```text
-abil checkpoint inspect <path>
-abil worker --learner-config <file>
+abil state inspect <path>
+abil worker --task-manifest <file>
 
 abil-eval corpus verify <manifest>
 abil-eval replay --manifest <run-manifest>
 abil-eval qualify-substrate --manifest <qualification-manifest>
 abil-eval evaluate-learner --manifest <efficacy-manifest>
+abil-eval checkpoint inspect <checkpoint-manifest>
 abil-eval receipt verify <receipt>
 ```
 
 The exact flags may change during implementation planning, but the semantic separation remains:
 
 - `abil` is learner/core-side;
-- `abil-eval` owns evaluator truth, projection, scoring, and qualification orchestration.
+- `abil-eval` owns evaluator truth, rich run manifests, projection, outer checkpoint binding, scoring, and qualification orchestration.
 
 No CLI command in R2 opens a machine write path.
 
-## 22. Technology choices
+## 23. Technology choices
 
 Initial stack:
 
@@ -676,7 +759,7 @@ Initial stack:
 
 R2 does not claim cryptographic authenticity from a SHA-256 digest alone. If artifacts cross an untrusted boundary, authenticated signing/verification is a separate security capability and must not be implied by local integrity checks.
 
-## 23. Failure behavior
+## 24. Failure behavior
 
 The substrate fails closed at the claim/evidence boundary.
 
@@ -694,7 +777,7 @@ Examples:
 - hidden truth or semantic mapping reaches learner -> qualification failure;
 - unavailable test evidence -> `NOT_RUN`, never inferred pass.
 
-## 24. Review boundaries and next gate
+## 25. Review boundaries and next gate
 
 This document is the design artifact only.
 
