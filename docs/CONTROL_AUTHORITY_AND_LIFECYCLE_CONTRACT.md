@@ -178,7 +178,7 @@ Future Stage-5 manual commissioning and Mode-B PLC-proxy actions must use a comm
 - unique `request_id` / operation identity;
 - deployment/machine identity;
 - authority domain and current ownership generation;
-- authority epoch/promotion identity where applicable;
+- current authenticated authority epoch/promotion identity;
 - exact semantic operation and parameters;
 - expected state/precondition version or snapshot when required;
 - expiry/freshness/replay protection;
@@ -186,13 +186,28 @@ Future Stage-5 manual commissioning and Mode-B PLC-proxy actions must use a comm
 - duplicate-request/idempotency policy;
 - timeout and reconnect semantics;
 - bounded queue depth/backpressure;
+- target/protocol correlation identity where available;
 - durable linkage among request, gateway decision, execution attempt, receipt, and subsequent observation.
 
-`UNKNOWN/AMBIGUOUS_EXECUTION_OUTCOME` is a first-class state.
+The durable logical command identity is scoped by the authority state that made it admissible, conceptually equivalent to `(deployment, authority_domain, authority_epoch, ownership_generation, request_id)`. A request identifier does not float across authority transfers.
+
+`UNKNOWN/AMBIGUOUS_EXECUTION_OUTCOME` is a first-class **durable** state. If acknowledgement is lost after possible physical execution, the unresolved transaction must survive process restart/reconnect long enough to prevent blind reissue and preserve later reconciliation. Durable state must retain the evidence actually available, the retry/idempotency disposition, and the eventual resolution if one is established.
 
 A non-idempotent or physically ambiguous action must not be blindly retried after timeout/reconnect. Retry is allowed only when the operation is mechanically idempotent under the exact target contract or an installation-specific recovery rule explicitly establishes that retry is safe.
 
 Reconnect must not implicitly replay unknown physical operations. Queue/backpressure behavior must not silently reorder or duplicate commands.
+
+When promotion, rollback, cutover, ownership transfer, or revocation advances the authority or ownership generation:
+
+- outstanding prior-generation commands do **not** migrate automatically into the new generation;
+- unresolved prior-generation outcomes remain quarantined and auditable;
+- reconnect/restart does not replay those historical operations merely because the new writer is healthy;
+- a semantically equivalent later action requires a new request under the new authority generation unless an exact target-specific recovery contract proves otherwise;
+- delayed or stale receipts from an old generation cannot satisfy or complete a new-generation request;
+- queued-but-not-executed commands from a revoked generation lose authority and cannot be dispatched;
+- restoring an old gateway queue or transaction store cannot resurrect command authority from an obsolete generation.
+
+Rollback of artifact bytes does not roll command time backward. Selecting an older known-good artifact under a new rollback/promotion receipt creates a new authority generation; request/receipt state from the artifact's historical generation remains historical evidence.
 
 ## 9. Single-writer transfer and split-brain prevention
 
@@ -214,6 +229,8 @@ An authority-transfer state machine should be able to represent, at minimum:
 Transfer evidence binds exact deployment/topology generation, predecessor/current writer, output/I/O scope, protocol/master/session ownership where relevant, authority epoch/ownership generation, quiescence evidence, transfer operation identity, post-transfer readback, and rollback/fallback target.
 
 If predecessor quiescence or new ownership cannot be established, do not continue merely because the new runtime is otherwise qualified.
+
+If an authority transfer occurs while a physical command outcome is unresolved, that transaction remains explicitly quarantined across the transfer. Neither the new writer nor a restored old writer may silently reissue it; reconciliation must preserve the exact old authority/ownership generation and any later evidence about its physical effect.
 
 ## 10. Independent-safety noninterference
 
@@ -262,12 +279,15 @@ Future implementation contracts should be able to demonstrate at least:
 7. individually allowlisted commissioning commands unsafe in combination/order/state are rejected independently of learner permissives;
 8. an action whose independent prerequisite is `UNKNOWN` is rejected;
 9. acknowledgement loss after an executed physical command does not cause blind duplicate actuation;
-10. duplicate request IDs obey the declared idempotency contract;
-11. reconnect does not replay ambiguous commands;
-12. queue/backpressure failure cannot silently reorder/duplicate physical operations;
-13. stale writer generations are rejected after authority transfer;
-14. safety/protective assets remain outside ordinary ABIL mutation/ownership and the independent safety path remains effective under declared failure/restart cases;
-15. adaptive-learning services can be stopped/faulted without violating the already-qualified deterministic/manual degraded-operation contract.
+10. duplicate request IDs obey the declared idempotency contract within the exact authority/ownership generation;
+11. duplicate request IDs or delayed receipts from old authority generations cannot be mistaken for current-generation transactions;
+12. reconnect/restart does not replay ambiguous commands and preserves unresolved ambiguity state;
+13. queue/backpressure failure cannot silently reorder/duplicate physical operations;
+14. restoring an old gateway queue/transaction store cannot resurrect old command authority;
+15. an in-flight ambiguous command remains quarantined across writer ownership transfer or rollback;
+16. stale writer generations are rejected after authority transfer;
+17. safety/protective assets remain outside ordinary ABIL mutation/ownership and the independent safety path remains effective under declared failure/restart cases;
+18. adaptive-learning services can be stopped/faulted without violating the already-qualified deterministic/manual degraded-operation contract.
 
 ## 13. Immediate R2 boundary
 
