@@ -4,6 +4,10 @@ Status: **proposed successor design for review; implementation not yet authorize
 
 Date: 2026-09-08
 
+Normative correction companion: `docs/superpowers/specs/2026-09-08-abil-r2-review-corrections-r1.md`
+
+The correction companion is cumulative with this design and controls where the two conflict. Reviewers must evaluate the exact PR #3 head as the composition of both documents.
+
 ## 1. Purpose and provenance
 
 R2 is the corrected successor to the frozen F0 learning-substrate design. It exists because the frozen F0 subject failed qualification and must not be repaired or relabeled in place.
@@ -224,6 +228,7 @@ Conceptual fields:
 ```text
 schema_id
 learner_stream_id
+stream_incarnation_id
 channel_id
 event_id
 event_seq
@@ -235,23 +240,24 @@ relative_time_delta?  # only if timing profile explicitly allows it
 Rules:
 
 - `learner_stream_id` is opaque and source-scoped;
-- `channel_id` is scoped within `learner_stream_id`;
+- `stream_incarnation_id` is opaque and identifies one continuity-established incarnation of that stream;
+- `channel_id` is scoped within `learner_stream_id` and its active incarnation;
 - bare short channel names are never assumed globally unique;
 - `event_id` is an opaque stable identity for duplicate/replay detection and contains no readable plant semantics;
-- `event_seq` is allocated from a monotonic sequence domain within a learner stream, but physical/recorded arrival may be out of order relative to that sequence;
+- `event_seq` is allocated from a monotonic sequence domain within one stream incarnation, but physical/recorded arrival may be out of order relative to that sequence;
 - `value` in the first R2 slice is a finite scalar numeric/boolean value; arbitrary strings and object payloads are out of scope;
 - unknown fields fail closed;
 - no arbitrary metadata bag exists;
 - no `deployment_id`, device name, network address, tag name, hidden regime, fixture seed, or `ACTION_CONSEQUENCE` label crosses by default;
 - optional observation/transport status is supplied evidence and remains conceptually distinct from learner/model uncertainty.
 
-If two records claim the same `(learner_stream_id, event_seq)` with different `event_id` or different canonical value bytes, the substrate treats that as a source conflict rather than silently replacing one record.
+If two records claim the same `(learner_stream_id, stream_incarnation_id, event_seq)` with different `event_id` or different canonical value bytes, the substrate treats that as a source conflict rather than silently replacing one record.
 
 ### 7.3 Opaque identifier construction
 
 Learner-visible IDs must not be a direct unsalted hash of readable device/tag/address strings that could be dictionary-reversed.
 
-The evaluator creates corpus/run-local opaque namespaces and mappings. Stable replay identity may be deterministically derived from already-opaque namespace/stream/sequence subjects, while the rich-to-opaque mapping remains evaluator-side.
+The evaluator creates corpus/run-local opaque namespaces and mappings. Stable replay identity may be deterministically derived from already-opaque namespace/stream/incarnation/sequence subjects, while the rich-to-opaque mapping remains evaluator-side.
 
 The exact construction is part of the projection profile and qualification evidence.
 
@@ -272,19 +278,26 @@ Evaluator/runtime state may bind:
 - exact deployment or fixture identity;
 - source adapter identity/configuration;
 - corpus identity;
-- rich physical/source provenance.
+- rich physical/source provenance;
+- time-bound endpoint/locator observations;
+- evidence-backed source-incarnation continuity.
 
 Learner-visible state uses only opaque identities needed for collision-safe learning and replay:
 
 ```text
 learner_stream_id
-  -> channel_id
-      -> event_seq / event_id
+  -> stream_incarnation_id
+      -> channel_id
+          -> event_seq / event_id
 ```
 
 The mapping from rich evaluator source identity to learner-visible IDs is evaluator-side and part of the projection profile/configuration digest.
 
 IP address, PLC slot, node number, assembly/register, tag path, source filename, device serial, or other rich provenance never becomes the learner primary key merely because it exists.
+
+Evaluator/control-side identity continuity is represented by an `IdentityBinding` (or equivalent) that records endpoint observations, evidence/provenance, and a continuity state equivalent to `ESTABLISHED`, `UNRESOLVED`, or `BROKEN_NEW_INCARNATION`.
+
+Same-locator replacement does not imply continuity. Same-source locator change retains continuity only when independently established. Unresolved continuity blocks ordinary state attachment/restore or starts a fresh incarnation under an explicit rule.
 
 ## 9. Timing and schedule-oracle control
 
@@ -305,6 +318,7 @@ Required timing controls include:
 - time-origin shift runs;
 - alternate/held-out regime schedules;
 - original versus accelerated replay;
+- hostile wall-clock pauses/jitter for pacing-independent profiles;
 - identical learner-visible event bytes under evaluator-only timestamp-origin mutation for `ORDER_ONLY` runs.
 
 If a timing field is supplied to the learner, the result is credited only to the declared timing profile rather than generalized to timing-blind performance.
@@ -324,7 +338,7 @@ For a configured target channel:
 1. receive the next accepted event;
 2. if the event is a target observation, build a feature frame **before** incorporating that target value;
 3. request prediction;
-4. record the prediction/evidence position;
+4. durably associate the prediction with the exact evidence frontier used;
 5. reveal the target value to the learner only after prediction for online learning/update;
 6. update assembler state;
 7. continue.
@@ -332,6 +346,8 @@ For a configured target channel:
 This enforces prequential ordering and prevents current-target leakage.
 
 Events from other channels update available feature state when they are accepted.
+
+A committed historical prediction/frame may not be rewritten using later or out-of-order evidence. Backward fill, centered windows, future-anchored interpolation, future-dependent normalization, or later evaluator labels/status are incompatible with a prequential profile unless the run is explicitly reclassified as an acausal/offline profile.
 
 ### 10.2 Duplicate, late, reordered, and missing events
 
@@ -343,7 +359,8 @@ The assembler/ingress contract must define and test:
 - deterministic watermark/late-event disposition when buffering is enabled;
 - no silent interpolation or fabricated values;
 - explicit missingness in feature frames;
-- deterministic frame output for the same canonical event sequence and config.
+- deterministic frame output for the same canonical event sequence and config;
+- no silent rewrite of already-committed historical predictions when late evidence arrives.
 
 The default R2 replay path uses the corpus's declared canonical ingress sequence. If the original source lacks trustworthy arrival ordering and an adapter derives a total order, that ordering policy is part of the adapter/corpus manifest and claim ceiling.
 
@@ -353,13 +370,21 @@ A feature frame binds:
 
 - feature-assembly schema/version;
 - assembly config digest;
-- target opaque stream/channel;
+- target opaque stream/incarnation/channel;
 - prediction index;
 - exact input event frontier used;
 - feature values and missingness mask;
 - timing-derived features only if the active timing profile permits them.
 
 The learner never receives a feature derived from an event that occurs after the prediction frontier.
+
+### 10.4 Incarnation transition barrier
+
+A source-incarnation transition is an atomic causal boundary across event/frontier state, reorder buffers, open windows, feature state, normalization/calibration, rolling state, change detectors, learner/model state that depends on the transitioned stream, and checkpoint material.
+
+Old/new incarnations may not silently coexist in one feature frame/window. Late old-incarnation events cannot advance new-incarnation state. Open buffers/windows must be deterministically closed, flushed, quarantined, or recomputed before new-incarnation learning proceeds. State migration requires an explicit compatible rule.
+
+If a replacement boundary is discovered late, exact boundaries are recomputed or invalidated from a valid cut where practical; ambiguous boundaries produce explicit contaminated/claim-limited state rather than silently preserving clean history.
 
 ## 11. Replay and corpus identity
 
@@ -374,6 +399,7 @@ A replay corpus has a manifest that binds at least:
 - canonical learner-event sequence digest;
 - declared canonical ordering policy;
 - timing visibility profile;
+- stream-incarnation transition records and continuity-profile digest where present;
 - fixture/scoring metadata digest retained evaluator-side;
 - opaque-label transform identity when used.
 
@@ -429,14 +455,14 @@ Stronger efficacy claims require, as applicable:
 - calibrated or otherwise defensible uncertainty/change behavior;
 - performance under opaque-label/semantic-ablation controls when the claim is semantic independence;
 - at least one inspectable nontrivial machine-specific learned-structure artifact rather than only a scalar score;
-- a second fixture/corpus onboarding run through the existing generic replay/configuration path with **zero code edits** to `abil-core` or `abil-eval`, with configuration/semantic setup burden recorded;
+- a second fixture/corpus onboarding run using the generic substrate without core-code changes, with configuration/semantic setup burden recorded;
 - evidence that supplied names/annotations are not being credited as autonomous discovery.
 
 Failure of learner efficacy does not retroactively fail a structurally honest substrate.
 
-## 14. Opaque-label and semantic-ablation controls
+## 14. Opaque-label, identity-remap, and semantic-ablation controls
 
-The qualification tooling must be able to transform an evaluator fixture/corpus so that learner-visible stream/channel IDs are deterministically remapped to opaque labels while preserving event/value/order structure.
+The qualification tooling must be able to transform an evaluator fixture/corpus so that learner-visible stream/channel/incarnation IDs are deterministically remapped to opaque labels while preserving event/value/order structure.
 
 For substrate qualification, the transform must prove that:
 
@@ -444,6 +470,8 @@ For substrate qualification, the transform must prove that:
 - no hidden rich identity is required by the learner interface;
 - checkpoint/restore and replay still work under the transformed identity profile;
 - evaluator scoring can still join correctly without exposing the mapping to the learner.
+
+For claims where identity itself is not intended to carry predictive information, qualification must include consistent opaque-ID remapping and/or held-out new stream/incarnation identities. If stable identity is intentionally predictive evidence, the claim ceiling must say so.
 
 For learner-efficacy claims, the performance requirement is claim-specific. A learner that collapses when tag semantics disappear cannot be credited with semantics-independent machine-structure learning.
 
@@ -455,64 +483,52 @@ Construct paired evaluator runs in which:
 
 - learner-visible canonical event bytes are identical;
 - evaluator-only hidden regime/fault labels or other withheld truth differ;
-- the learner process starts from the same code/config/learner-state subject.
+- the learner process starts from the same code/config/checkpoint state.
 
 Required result:
 
 - learner ingress bytes are identical;
 - learner predictions/evidence outputs are identical;
-- learner-state payload bytes/digests are identical except for explicitly non-semantic metadata held outside the learner payload;
+- learner checkpoint bytes/digests are identical except for explicitly non-semantic creation metadata that is normalized out of the comparison;
 - only evaluator scoring/interpretation may differ.
 
 Any learner-output difference caused solely by evaluator-only truth mutation is a qualification failure.
 
-## 16. Two-layer checkpoint and restore contract
+This noninterference test is distinct from source-continuity testing: actual source replacement/remap is not an evaluator-only metadata mutation and must exercise the source-incarnation rules instead.
+
+## 16. Checkpoint and restore contract
 
 Checkpoint authority is compatibility/state continuity only. It carries no machine-control authority.
 
-R2 separates rich control-plane compatibility binding from learner-visible state so checkpoint trust does not become a provenance oracle.
+### 16.1 Two-layer checkpoint subject
 
-### 16.1 `CheckpointManifest` — evaluator/control side
+The checkpoint system has two distinct layers:
 
-The outer manifest binds at least:
+1. **Outer evaluator/control binding** — rich compatibility/provenance identity not visible to the learner.
+2. **Learner state envelope** — bounded opaque learner continuity state.
 
-- checkpoint manifest schema/version;
-- checkpoint ID;
-- rich deployment/fixture/source binding where applicable;
-- adapter/parser version/config digest;
-- corpus/fixture identity where applicable;
-- evaluator projection profile/schema digest;
+The outer binding includes or content-addresses at least:
+
+- checkpoint schema/version and checkpoint ID;
+- exact learner implementation/version/config digest;
+- learner state codec/version;
+- learner-event schema ID;
+- projection profile digest;
 - timing profile;
 - feature-assembly version/config digest;
-- exact learner implementation/version/config digest;
-- learner wheel/software build identity;
-- learner-state codec/version;
-- opaque learner stream-set digest;
-- source-scoped frontier digest/map;
-- inner learner-state payload digest;
+- adapter/source profile digest;
+- corpus/fixture identity where relevant;
+- exact active stream-incarnation set;
+- continuity/`IdentityBinding` profile digest;
+- source-scoped frontier for every active stream incarnation;
+- software/build identity;
 - payload length/shape bounds;
-- local integrity metadata;
-- creation metadata.
+- payload digest/integrity value;
+- creation metadata retained outside learner features.
 
-The outer manifest is validated by `abil-eval` before learner state is supplied to the child process. Rich deployment, adapter, corpus, and physical-source identity in this manifest is not learner feature input.
+The learner state envelope contains only learner-required opaque state and no rich deployment/device/source identity.
 
-### 16.2 `LearnerStateEnvelope` — learner side
-
-The inner learner-visible state contains only what is necessary to restore the learner itself:
-
-- learner-state schema/version;
-- learner implementation/config identity;
-- learner-state codec/version;
-- opaque stream/channel/frontier state;
-- feature-assembler state needed for exact continuation;
-- learner/model/change-detector state;
-- deterministic RNG state when the declared learner requires it;
-- bounded payload lengths/shapes;
-- inner payload digest.
-
-It does not contain rich deployment/device/address/tag/corpus semantics or evaluator truth.
-
-### 16.3 Safe serialization
+### 16.2 Safe serialization
 
 Generic Python `pickle`, `marshal`, or arbitrary executable object deserialization is not an accepted R2 checkpoint codec.
 
@@ -520,31 +536,30 @@ Each learner must expose a typed bounded state codec. Acceptable first-slice tec
 
 Checkpoint decoding must enforce declared size, type, array-shape, and version bounds before constructing learner state.
 
-### 16.4 Restore rules
+### 16.3 Restore rules
 
-The evaluator/control layer mechanically rejects, absent a separately designed migration operation:
+Restore mechanically rejects, absent a separately designed migration operation:
 
-- wrong deployment/fixture/source binding where required;
-- wrong adapter/source profile;
-- wrong projection/timing/assembly profile;
+- wrong deployment/fixture/source binding where that binding is required;
+- wrong source incarnation or unresolved continuity state;
 - wrong learner implementation/config;
-- wrong event/state schema;
+- wrong projection/timing/assembly profile;
+- wrong event schema;
+- wrong adapter/source profile;
 - unknown codec/version;
-- corrupt/tampered outer or inner payload;
+- corrupt or tampered payload;
 - stale frontier that would silently duplicate already-consumed events;
 - frontier ahead of available replay/source evidence;
-- stream-set mismatch;
-- incompatible software/build identity.
+- stream/incarnation-set mismatch;
+- incompatible software/schema identity.
 
-Only after outer compatibility succeeds is the inner learner state supplied to the worker.
+R2 does not define cross-machine model transfer. A transfer/migration capability is a separate future design and must be mechanically distinct from ordinary restore.
 
-R2 does not define cross-machine model transfer. A transfer/migration capability is a separate future design.
+### 16.4 Restart equivalence
 
-### 16.5 Restart equivalence
+For a deterministic learner and run profile, uninterrupted execution and execution interrupted by checkpoint/restore at declared cut points must produce equivalent subsequent predictions, learner state digest, evaluation results, and source-incarnation frontier.
 
-For a deterministic learner and run profile, uninterrupted execution and execution interrupted by checkpoint/restore at declared cut points must produce equivalent subsequent predictions, learner-state digest, evaluation results, and source frontier.
-
-Qualification uses multiple cut points, including around regime changes and around duplicate/late-event cases.
+Qualification uses multiple cut points, including around regime changes, duplicates, late events, and source-incarnation transitions/unresolved continuity.
 
 ## 17. Runtime, queue, resource, and overload contract
 
@@ -561,7 +576,13 @@ On overload, the runtime must produce an explicit machine-readable disposition s
 
 It may not silently drop, reorder, duplicate, or fabricate events and still report a valid qualification run.
 
-Each qualification run records:
+Each qualification run records resource evidence separately for:
+
+1. learner child/process tree;
+2. evaluator/orchestrator;
+3. end-to-end substrate.
+
+For each applicable scope record:
 
 - input event count and rate;
 - accepted/duplicate/conflict/late/rejected counts;
@@ -575,13 +596,15 @@ Each qualification run records:
 - child-process startup duration;
 - any overload/failure disposition.
 
+Where the platform cannot perfectly attribute a metric, the limitation is recorded rather than represented as exact attribution.
+
 The implementation plan must preregister concrete numeric resource profiles before performance qualification is run. Those numbers are engineering test targets, not product performance claims. Until measured on an identified reference environment, resource status remains `PROPOSED / UNMEASURED`.
 
-## 18. Qualification receipts and reproducibility
+## 18. Qualification receipts, evidence packages, and reproducibility
 
-Every substrate or learner-efficacy run emits an evaluator-side machine-readable `QualificationReceipt`.
+Every substrate or learner-efficacy run emits a machine-readable `QualificationReceipt` plus a content-addressed `QualificationEvidencePackage` or equivalent retained evidence set.
 
-It binds at least:
+The receipt binds at least:
 
 - qualification gate and exact test profile;
 - repository/source commit;
@@ -599,43 +622,51 @@ It binds at least:
 - measured metrics;
 - every acceptance criterion with `PASS`, `FAIL`, or `NOT_RUN`;
 - limitations/claim ceiling;
-- output artifact digests.
+- evidence-package manifest digest and output artifact digests.
 
-The receipt is not learner input. A human-readable summary may be generated from it, but the summary is not the qualification authority.
+A run may claim `INDEPENDENTLY_RECOMPUTABLE` only when the evidence package contains or content-addresses enough material to independently recompute the declared result, including learner-visible event sequence, feature inputs/profile, scored outputs/frontiers, evaluator joins/targets/profile, paired baselines, negative-control outputs, per-test detail, checkpoint artifacts where relevant, and raw resource measurements.
+
+Aggregate-only receipts are insufficient for independent recomputability.
+
+A human-readable summary may be generated from the receipt, but the summary is not the qualification authority.
 
 ## 19. Minimum `R2-SUBSTRATE-QUALIFIED` acceptance set
 
-The substrate gate requires fresh evidence for all of the following:
+The substrate gate requires fresh evidence for **every** item in this section and every cumulative added obligation in the normative correction companion.
 
 1. unknown learner-event fields fail closed;
 2. no unrestricted evaluator metadata crosses the projection;
 3. synthetic and replay paths use the same learner projection contract;
 4. hidden-truth mutation with identical learner-visible bytes leaves learner outputs/state unchanged;
-5. reviewed learner/plugin code receives no evaluator/world object or declared hidden-truth capability path;
+5. learner/plugin code receives no evaluator/world object or hidden-truth capability path;
 6. source-scoped IDs tolerate duplicate short channel names across streams without collision;
-7. learner IDs are opaque mappings rather than reversible/readable physical provenance;
-8. rich physical/source identity can change while an explicitly unchanged learner projection remains unchanged;
-9. transport/device status remains separately attributed from learner/model uncertainty;
-10. `ORDER_ONLY` timing tests survive absolute-origin changes and held-out regime schedules without hidden timing fields appearing;
-11. raw asynchronous events do not require timestamp-row synchrony;
-12. prequential tests prove target value is unavailable before prediction;
-13. duplicate, sequence-conflict, missing, late, and reordered-event cases have deterministic declared outcomes;
-14. replay corpus identity and canonical learner-event digest are stable;
-15. original and accelerated replay are equivalent for pacing-independent profiles;
-16. outer checkpoint binding cannot become learner-visible rich provenance;
-17. wrong-identity, corrupt, stale, ahead, mismatched, and incompatible checkpoints are mechanically rejected;
-18. uninterrupted and checkpoint/restored runs are equivalent at multiple cut points;
-19. checkpoint decoding uses bounded non-executable state codecs;
-20. every baseline and learner receives the same declared event/frame sequence for paired comparison;
-21. the harness can validly report `simple baseline wins` without treating that as substrate failure;
-22. opaque-label transformation runs without learner access to the mapping;
-23. a second replay fixture can be onboarded through existing generic replay/configuration paths with zero code edits to `abil-core` or `abil-eval`, and the setup burden is recorded;
-24. queues/buffers are bounded and overload cannot silently produce a valid run;
-25. CPU/memory/disk/throughput/checkpoint/restore evidence is emitted under a preregistered resource profile;
-26. the implementation contains no industrial machine-write client/path and no live-machine capability is implied by the result;
-27. one complete `QualificationReceipt` is recomputable from retained run artifacts and digests.
+7. rich physical/source identity can change while an explicitly unchanged learner projection remains unchanged only when source continuity remains independently established;
+8. transport/device status remains separately attributed from learner/model uncertainty;
+9. `ORDER_ONLY` timing tests survive absolute-origin changes and held-out regime schedules without hidden timing fields appearing;
+10. raw asynchronous events do not require timestamp-row synchrony;
+11. prequential tests prove target value is unavailable before prediction;
+12. duplicate, sequence-conflict, missing, late, and reordered-event cases have deterministic declared outcomes;
+13. replay corpus identity and canonical learner-event digest are stable;
+14. original and accelerated replay are equivalent for pacing-independent profiles;
+15. wrong-identity, corrupt, stale, ahead, mismatched, and incompatible checkpoints are mechanically rejected;
+16. uninterrupted and checkpoint/restored runs are equivalent at multiple cut points;
+17. checkpoint decoding uses bounded non-executable state codecs;
+18. every baseline and learner receives the same declared event/frame sequence for paired comparison;
+19. the harness can validly report `simple baseline wins` without treating that as substrate failure;
+20. opaque-label transformation runs without learner access to the mapping;
+21. a second replay fixture can be configured/onboarded through generic substrate/configuration paths without modifying `abil-core` logic, and the setup burden is recorded;
+22. queues/buffers are bounded and overload cannot silently produce a valid run;
+23. CPU/memory/disk/throughput/checkpoint/restore evidence is emitted under a preregistered resource profile with learner/evaluator/end-to-end attribution;
+24. the implementation contains no industrial machine-write client/path and no live-machine capability is implied by the result;
+25. one complete `QualificationReceipt` and referenced evidence package are recomputable from retained run artifacts and digests;
+26. a deliberately broken harness/comparator/fixture negative control fails as expected; unexpected pass invalidates the affected harness/gate;
+27. a source-incarnation transition is mechanically isolated across buffers/features/frontiers/derived learner state and replay;
+28. future evidence cannot rewrite a committed prequential prediction/frame;
+29. opaque-ID remap and/or held-out-identity controls are exercised for claims that exclude identity as predictive evidence;
+30. an old-incarnation checkpoint cannot attach to a replacement source merely because a locator or stable stream handle is reused;
+31. unresolved source continuity cannot silently resume as clean ordinary state.
 
-A missing or `NOT_RUN` item in this minimum set means the substrate is not yet `R2-SUBSTRATE-QUALIFIED`.
+The correction companion adds more detailed hostile cases under these same obligations. A missing or `NOT_RUN` required case means the substrate is not yet `R2-SUBSTRATE-QUALIFIED`.
 
 ## 20. Learner-efficacy evidence contract
 
@@ -649,15 +680,16 @@ A learner receives no efficacy credit merely because:
 - human annotations disclose the relationship;
 - evaluator timing leaks the regime schedule;
 - it improves only after a hidden reset/full retrain;
-- one fixture is hand-tailored in code.
+- one fixture is hand-tailored in code;
+- it memorizes stable fixture/stream/incarnation IDs where identity is not part of the declared predictive evidence.
 
 An efficacy result should retain at least:
 
 - paired baseline comparison;
 - prediction/change/adaptation metrics appropriate to the task;
 - recurrence/forgetting evidence where applicable;
-- opaque-label result where applicable;
-- second-fixture onboarding evidence with zero substrate code edits;
+- opaque-label/identity-remap result where applicable;
+- second-fixture onboarding evidence;
 - inspectable learned-structure artifact;
 - explicit uncertainty/insufficient-evidence behavior;
 - exact claim ceiling.
@@ -678,7 +710,8 @@ packages/
         events.py
         features.py
         predictions.py
-        learner_state.py
+        checkpoints.py
+        receipts.py
       assembly/
         base.py
         prequential.py
@@ -687,7 +720,7 @@ packages/
         baselines.py
       persistence/
         codec.py
-        learner_state.py
+        checkpoint.py
       worker.py
       cli.py
   abil-eval/
@@ -695,12 +728,10 @@ packages/
     src/abil_eval/
       __init__.py
       evaluator_records.py
-      manifests.py
       projection.py
+      identity.py
       corpora.py
       replay.py
-      checkpoints.py
-      receipts.py
       fixtures/
         synthetic.py
       scoring.py
@@ -708,6 +739,7 @@ packages/
         opaque_labels.py
         hidden_truth.py
         timing.py
+        broken_harness.py
       qualification.py
       cli.py
 tests/
@@ -726,21 +758,20 @@ The first operator is the developer/reviewer, not a plant operator.
 Representative commands:
 
 ```text
-abil state inspect <path>
-abil worker --task-manifest <file>
+abil checkpoint inspect <path>
+abil worker --learner-config <file>
 
 abil-eval corpus verify <manifest>
 abil-eval replay --manifest <run-manifest>
 abil-eval qualify-substrate --manifest <qualification-manifest>
 abil-eval evaluate-learner --manifest <efficacy-manifest>
-abil-eval checkpoint inspect <checkpoint-manifest>
 abil-eval receipt verify <receipt>
 ```
 
 The exact flags may change during implementation planning, but the semantic separation remains:
 
 - `abil` is learner/core-side;
-- `abil-eval` owns evaluator truth, rich run manifests, projection, outer checkpoint binding, scoring, and qualification orchestration.
+- `abil-eval` owns evaluator truth, projection, identity continuity, scoring, and qualification orchestration.
 
 No CLI command in R2 opens a machine write path.
 
@@ -770,18 +801,21 @@ Examples:
 - duplicate event with identical identity/content -> deterministic duplicate disposition;
 - same source sequence with conflicting identity/content -> invalidate/quarantine run;
 - corrupt checkpoint -> reject restore;
-- wrong profile/source/frontier checkpoint -> reject restore;
+- wrong profile/source/incarnation/frontier checkpoint -> reject restore;
+- unresolved source continuity -> block ordinary state attachment/restore or start an explicit fresh incarnation;
 - evaluator/learner noninterference test fails -> substrate gate fails;
 - resource envelope exceeded with data loss risk -> run invalid, not a degraded pass;
 - baseline wins -> valid substrate result, learner efficacy not earned;
 - hidden truth or semantic mapping reaches learner -> qualification failure;
+- broken-harness negative control unexpectedly passes -> affected qualification harness/gate untrusted;
+- evidence package missing/incomplete/digest-mismatched -> no independent-recomputability claim;
 - unavailable test evidence -> `NOT_RUN`, never inferred pass.
 
 ## 25. Review boundaries and next gate
 
-This document is the design artifact only.
+This document and its normative correction companion are design artifacts only.
 
-It does not authorize:
+They do not authorize:
 
 - implementation;
 - source package scaffolding;
@@ -792,4 +826,4 @@ It does not authorize:
 - deployment;
 - merge.
 
-The next process gate is human review of this written spec. After the spec is approved, an implementation plan may be written. Implementation begins only after that planning/review path grants the appropriate exact scope.
+The next process gate is exact-head peer review of the corrected PR #3 design composition. Implementation planning may begin only after that design source is approved under the current gate.
