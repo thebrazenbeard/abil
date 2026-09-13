@@ -129,7 +129,7 @@ The primary generated artifact should be an inspectable machine-control model co
 - unresolved relationships and uncertainty;
 - a control-coverage ledger describing what evidence or engineering requirement supports each promoted behavior.
 
-`Not observed` does not mean `safe to omit`. Unresolved behavior must fail closed, remain technician-engineered, or be excluded from the promoted operating envelope.
+`Not observed` does not mean `safe to omit`. Unresolved behavior must be denied promotion/authority by default, remain technician-engineered, or be excluded from the promoted operating envelope. Physical safe-state/fallback behavior remains installation-specific.
 
 The model can then be translated to an existing vendor PLC, a narrow PLC-proxy interface, an ABIL deterministic runtime, or another supported industrial controller.
 

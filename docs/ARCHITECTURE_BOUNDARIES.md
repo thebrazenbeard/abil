@@ -185,11 +185,13 @@ Generated control is always a **candidate** until a separately authorized promot
 
 The architecture distinguishes candidate generation, validation/evidence production, promotion authority, protected active-artifact/loader state, and deterministic runtime verification.
 
-The intelligence/commissioning/learner/LLM/plugin plane may write candidates, but it cannot write promotion trust material, active artifact storage, loader selection, next-boot target, or the current authority ledger.
+A process label, role name, or self-asserted approval is not an authority root. Before write-capable implementation, admission requires a current, independently rooted `AuthorityGrant` (or equivalent) binding the issuer/trust material, authorized subject, exact deployment and authority domain/output scope, permitted capability/action scope, validity/currentness, monotonic generation, revocation/supersession, and verifier identity. Candidate, learner, evaluator, plugin, and runtime-subject principals cannot create or widen that grant. Deployment authority and artifact-promotion authority remain distinct scopes/receipts even if one qualified organization or person holds both.
 
-A separately authorized promotion principal/process emits an authenticated/integrity-protected promotion manifest binding the exact deployment, topology/ownership domain, machine-model/evidence version, control-coverage ledger, artifact digest, target runtime/hardware/network/protocol/configuration, preserved safety interfaces, validation evidence, operating envelope, target-specific fallback policy, rollback identity, signoff, and a monotonic authority generation/epoch.
+The intelligence/commissioning/learner/LLM/plugin plane may write candidates, but it cannot write promotion trust material, active artifact storage, loader selection, next-boot target, the current authority ledger, or the authority grant.
 
-The deterministic loader/runtime independently verifies that promotion material before activation and restart. Activation is atomic or transactionally equivalent. Missing, partial, corrupt, mismatched, unauthenticated, unpromoted, wrong-deployment, or stale material does not become active.
+A separately authorized promotion principal/process emits an authenticated/integrity-protected promotion manifest binding the exact deployment, topology/ownership domain, machine-model/evidence version, control-coverage ledger, artifact digest, target runtime/hardware/network/protocol/configuration, preserved safety interfaces, validation evidence, operating envelope, target-specific fallback policy, rollback identity, current authority-grant identity, signoff, and a monotonic authority generation/epoch.
+
+The deterministic loader/runtime independently verifies the current authority grant and promotion material before activation and restart. Activation is atomic or transactionally equivalent. Missing, partial, corrupt, mismatched, unauthenticated, unpromoted, wrong-deployment, or stale material does not become active.
 
 Authority-bearing state is not ordinary checkpoint state. Learner/model/config backups cannot grant, downgrade, or resurrect control authority. Revocation/supersession survives restart/restore. Rollback to older known-good artifact bytes requires a **new** authorized rollback/promotion receipt at a newer authority generation rather than restoring an old authority epoch.
 
@@ -219,7 +221,9 @@ On an undocumented machine, a permissive, relay contact, reset handshake, drive-
 
 The default classification rule is:
 
-> **Unknown protective/interlock semantics are safety-relevant and out of scope for autonomous reconstruction until independently classified by qualified engineering evidence.**
+> **Unknown protective/interlock semantics are safety-relevant and out of scope for autonomous reconstruction until a current, independently authorized safety-classification record establishes otherwise.**
+
+Any later classification or downgrade to ordinary control requires a current `SafetyClassificationRecord` (or equivalent safety-project record) independent of the ordinary ABIL candidate/learner/evaluator planes. It binds the classifier/signoff authority, exact deployment and topology generation, hazard/safety context, evidence digest/set, classification scope and affected asset/semantics, validity/currentness, and revocation/supersession. Ordinary ABIL cannot create, refresh, or approve it. Until a current record exists, the conservative safety-relevant classification remains authoritative.
 
 ABIL may observe such state and preserve it as a prerequisite, but it may not downgrade it to ordinary control merely because the machine operated successfully or because the signal appears inside standard PLC logic.
 

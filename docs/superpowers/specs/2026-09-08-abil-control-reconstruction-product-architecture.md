@@ -127,7 +127,9 @@ Produces evidence about a candidate: replay, simulation, shadow, coverage, timin
 
 ### 6.3 Promotion-authority plane
 
-A separately authorized principal/process reviews an exact candidate package and, when authorized, emits authenticated/integrity-protected promotion material bound to the deployment, authority domain, topology generation, source model/evidence, semantic/provenance cut where material, control coverage, generated artifact, target runtime/hardware/network/protocol/configuration, generator/compiler/translator identity and configuration where material, safety-interface inventory, validation set, operating envelope, fallback policy, rollback target, signoff, and monotonic authority generation.
+A separately authorized principal/process reviews an exact candidate package and, when authorized, emits authenticated/integrity-protected promotion material bound to the deployment, authority domain, topology generation, source model/evidence, semantic/provenance cut where material, control coverage, generated artifact, target runtime/hardware/network/protocol/configuration, generator/compiler/translator identity and configuration where material, safety-interface inventory, validation set, operating envelope, fallback policy, rollback target, current authority-grant identity, signoff, and monotonic authority generation.
+
+A process label, role name, or self-asserted approval is not an authority root. Before write-capable implementation, admission requires a current, independently rooted `AuthorityGrant` (or equivalent) binding issuer/trust material, authorized subject, exact deployment and authority domain/output scope, permitted capability/action scope, validity/currentness, monotonic generation, revocation/supersession, and verifier identity. Candidate, learner, evaluator, plugin, and runtime-subject principals cannot create or widen that grant. Deployment authority and artifact-promotion authority remain separate scopes/receipts even if one qualified organization or person holds both.
 
 ### 6.4 Protected active-artifact / loader state
 
@@ -203,7 +205,9 @@ Existing safety PLCs, safety relays, E-stops, guard circuits, hardwired interloc
 
 The default classification rule is:
 
-> **Unknown protective/interlock semantics are safety-relevant and out of scope for autonomous reconstruction until independently classified by qualified engineering evidence.**
+> **Unknown protective/interlock semantics are safety-relevant and out of scope for autonomous reconstruction until a current, independently authorized safety-classification record establishes otherwise.**
+
+Any later classification or downgrade to ordinary control requires a current `SafetyClassificationRecord` (or equivalent safety-project record) independent of the ordinary ABIL candidate/learner/evaluator planes. It binds the classifier/signoff authority, exact deployment and topology generation, hazard/safety context, evidence digest/set, classification scope and affected asset/semantics, validity/currentness, and revocation/supersession. Ordinary ABIL cannot create, refresh, or approve it. Until a current record exists, the conservative safety-relevant classification remains authoritative.
 
 Ordinary ABIL discovery, commissioning, proxy, and direct-control authority is negatively scoped away from safety ownership/configuration/effect absent separate safety-project authority. Ordinary ABIL must not claim safety-device ownership, download/reset/reconfigure safety projects or signatures, change drive safety/network ownership, bypass/mask/spoof protective paths, or alter shared infrastructure in a way that silently disables independent safety.
 

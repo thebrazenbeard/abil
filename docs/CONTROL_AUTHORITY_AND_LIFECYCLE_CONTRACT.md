@@ -90,6 +90,18 @@ Validation systems may produce replay, simulation, shadow, coverage, timing, res
 
 A separately authorized principal/process reviews an exact candidate package and, when authorized, emits an authenticated/integrity-protected promotion manifest or receipt.
 
+A process name, role label, or self-asserted `authorized=true` is not an authority root. Before any write-capable implementation, the architecture requires a separate current authority grant/admission record (equivalent to `AuthorityGrant`) that is independently rooted and verifiable. The grant binds at least:
+
+- authority-root/issuer identity and verifier/trust-material identity;
+- authorized subject principal/process;
+- exact deployment/machine identity and authority domain/output scope;
+- permitted capability, mode, and action scope;
+- validity/currentness and monotonic grant generation;
+- revocation/supersession state; and
+- independence constraints preventing candidate, learner, evaluator, plugin, or runtime-subject code from creating or mutating the grant.
+
+Candidate/evaluator/learner/plugin principals cannot create, widen, refresh, revoke, or supersede that grant. Promotion/activation requires a current grant in addition to a valid promotion manifest. Deployment authority and artifact-promotion authority remain separate scopes/receipts even when one qualified organization or person may hold both roles for a particular installation; the two facts must remain independently evidenced.
+
 The promotion manifest binds, directly or by stable digest/reference:
 
 - exact deployment/machine identity;
@@ -107,6 +119,7 @@ The promotion manifest binds, directly or by stable digest/reference:
 - installation-specific safe-state/fallback policy identity;
 - predecessor active artifact/authority state;
 - known-good rollback artifact/configuration;
+- current authority grant/admission identity and verifier/trust-root identity;
 - promotion authority/signoff identity;
 - monotonic authority generation/epoch.
 
@@ -235,6 +248,8 @@ If an authority transfer occurs while a physical command outcome is unresolved, 
 ## 10. Independent-safety noninterference
 
 Ordinary ABIL discovery, commissioning, proxy, and direct-control capability is negatively scoped away from independent safety/protective ownership and configuration unless a separate explicitly engineered and authorized safety project grants exact scope.
+
+Unknown protective/interlock semantics remain safety-relevant and out of scope for autonomous reconstruction until a current, independently authorized safety-classification record establishes otherwise. Any later classification or downgrade to ordinary control requires a current `SafetyClassificationRecord` (or equivalent safety-project record) independent of the ordinary ABIL candidate/learner/evaluator planes. It binds at least the classifier/signoff authority, exact deployment and topology generation, hazard/safety context, evidence digest/set, classification scope and affected asset/semantics, validity/currentness, and revocation/supersession state. Ordinary ABIL cannot create, refresh, or approve this record. Until a current record exists, the conservative safety-relevant classification remains authoritative.
 
 Absent that separate safety authority, ordinary ABIL must not:
 
