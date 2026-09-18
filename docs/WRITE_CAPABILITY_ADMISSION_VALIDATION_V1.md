@@ -17,6 +17,7 @@ The stateful validator consumes:
 - evaluation time;
 - a current `AuthorityStateReadReceipt` or mechanically equivalent independently rooted current-authority read;
 - the independently resolved current freshness profile expected for that target/deployment;
+- the independently resolved canonicalization profile for digest-bound authority-state payloads;
 - the independently resolved deployment authority-surface profile and required authority-surface set;
 - the exact current authority-grant, safety-classification, commissioning-envelope, control-coverage, and active-artifact subjects referenced by the candidate.
 
@@ -34,12 +35,13 @@ At minimum reject:
 - candidate `authority_epoch <= max_observed_authority_epoch`, where that maximum is recomputed from the verified canonical current/revoked/superseded epoch set;
 - target mismatch between candidate and current-authority read;
 - stale, partial, conflicting, self-attested, or otherwise untrusted current-authority read;
-- freshness profile identity/digest mismatch, missing deadline, or evaluation time at/after the independently checkable freshness deadline;
+- freshness profile identity/digest mismatch, a carried deadline that does not equal the deadline independently derived from the bound freshness profile, or evaluation time at/after the derived deadline;
+- canonicalization profile identity/digest mismatch;
 - required authority-surface profile identity/digest mismatch;
 - any deployment-required authority surface missing from the reconciled read set;
 - any unexpected or duplicate surface identity that makes the reconciled set ambiguous;
 - required/reconciled surface-set digest mismatch or mismatch between the declared reconciled set and the per-surface read identities;
-- epoch-set digest mismatch, declared maximum mismatch, or current-epoch inconsistency with the materialized epoch set;
+- epoch-set digest mismatch, duplicate/conflicting epoch state, declared maximum mismatch, or current-epoch inconsistency with the materialized epoch set;
 - implementation-subject mismatch;
 - authority-grant digest mismatch or non-current grant;
 - safety-classification digest mismatch or non-current classification;
@@ -64,6 +66,7 @@ Its comparison state must be bound by `AUTHORITY_STATE_READ_RECEIPT_V1` or a mec
 - aggregate read time;
 - a non-null freshness deadline;
 - independently resolved freshness-profile identity and digest;
+- independently resolved canonicalization-profile identity and digest;
 - completeness/conflict status;
 - independently resolved deployment authority-surface-profile identity and digest;
 - the canonical required authority-surface identities and canonical required-set digest;
@@ -81,14 +84,16 @@ Its comparison state must be bound by `AUTHORITY_STATE_READ_RECEIPT_V1` or a mec
 
 The validator must resolve the expected freshness profile independently of the receipt, verify the receipt's `freshness_profile_id` and `freshness_profile_digest` against that profile, and then evaluate time.
 
-For a receipt to be usable:
+For a receipt to be usable, the validator must derive freshness from the independently resolved profile rather than trust a carried deadline:
 
-- every required surface read must carry a non-null `fresh_until`;
-- the aggregate receipt `fresh_until` must be no later than the earliest required-surface deadline;
-- evaluation time must be strictly before the aggregate and every required-surface deadline;
-- `freshness_status` must be `FRESH` and consistent with the computed result.
+1. for each required surface read, derive the permitted `fresh_until` from that surface's `read_at`, surface identity, target/deployment context, and the bound freshness profile;
+2. require each carried per-surface `fresh_until` to equal the independently derived deadline;
+3. derive the aggregate `fresh_until` as the earliest derived required-surface deadline;
+4. require the carried aggregate `fresh_until` to equal that derived aggregate deadline;
+5. require evaluation time to be strictly before the aggregate and every required-surface derived deadline;
+6. require `freshness_status` to be `FRESH` and consistent with the computed result.
 
-A label of `FRESH` with a missing, expired, later-than-permitted, or profile-mismatched deadline is rejection.
+A label of `FRESH` with a missing, expired, non-derivable, profile-mismatched, or independently inconsistent deadline is rejection. A caller cannot extend authority freshness by choosing a later deadline than the bound profile yields.
 
 ### 3.2 Epoch computation
 
@@ -96,12 +101,14 @@ The receipt must carry the materialized canonical epoch set used for comparison,
 
 The validator must:
 
-1. canonicalize the epoch-set payload under the declared format;
-2. verify its digest against `epoch_set_digest`;
-3. recompute `max_observed_authority_epoch` from all entries, including revoked and superseded entries;
-4. verify the declared maximum equals the recomputed maximum;
-5. verify `current_authority_epoch` is consistent with the current entry/entries and reject ambiguous current state;
-6. require the candidate `authority_epoch` to be strictly greater than the recomputed maximum.
+1. resolve the expected canonicalization profile independently of the receipt and verify the receipt's profile identity/digest;
+2. canonicalize the epoch-set payload under that verified profile;
+3. verify its digest against `epoch_set_digest`;
+4. reject duplicate epoch numbers with conflicting state and reject more than one `CURRENT` epoch;
+5. recompute `max_observed_authority_epoch` from all entries, including revoked and superseded entries;
+6. verify the declared maximum equals the recomputed maximum;
+7. verify `current_authority_epoch` equals the single `CURRENT` epoch and reject missing/ambiguous current state;
+8. require the candidate `authority_epoch` to be strictly greater than the recomputed maximum.
 
 An opaque digest without the materialized set is insufficient input for this predicate.
 
@@ -111,13 +118,14 @@ The validator must resolve the expected deployment authority-surface profile ind
 
 It must then:
 
-1. canonicalize and verify `required_authority_surface_ids` against `required_surface_set_digest`;
-2. verify the required set exactly matches the independently resolved deployment profile;
-3. derive the observed surface IDs from `authority_surface_reads`;
-4. verify those IDs exactly match `reconciled_authority_surface_ids`;
-5. canonicalize and verify the reconciled set against `reconciled_surface_set_digest`;
-6. require the reconciled set to equal the required set exactly;
-7. require each required surface read to be individually fresh and internally bound.
+1. resolve and verify the canonicalization profile independently of the receipt;
+2. canonicalize and verify `required_authority_surface_ids` against `required_surface_set_digest`;
+3. verify the required set exactly matches the independently resolved deployment profile;
+4. derive the observed surface IDs from `authority_surface_reads` and reject duplicate surface IDs;
+5. verify those IDs exactly match `reconciled_authority_surface_ids`;
+6. canonicalize and verify the reconciled set against `reconciled_surface_set_digest`;
+7. require the reconciled set to equal the required set exactly;
+8. require each required surface read to be individually fresh and internally bound.
 
 A `COMPLETE` label from one surface or from an incomplete reconciled set is rejection.
 
@@ -131,13 +139,17 @@ Implementations must use one declared evaluation clock/profile and record the ev
 
 ## 5. Canonicalization requirement
 
-The future executable validator must define one deterministic canonicalization for:
+Canonicalization is itself independently bound current input, not an implementation-local convention.
+
+The future executable validator must resolve the expected canonicalization profile independently of the receipt, verify `canonicalization_profile_id` and `canonicalization_profile_digest`, and apply that exact profile to:
 
 - the epoch-set payload;
 - required authority-surface IDs;
 - reconciled authority-surface IDs.
 
-The digests in the read receipt bind those canonical encodings. Until that canonicalization is implemented and qualified, these fields remain design-contract requirements rather than executable proof.
+The profile must deterministically specify ordering, field encoding, string/number representation, and digest input bytes needed to make those hashes reproducible. A digest computed under an unbound, mismatched, or unknown canonicalization profile is rejection.
+
+Until that profile and its resolver are implemented and qualified, these fields remain design-contract requirements rather than executable proof.
 
 ## 6. Validation receipt
 
@@ -146,7 +158,8 @@ Every stateful validation attempt should emit a machine-readable receipt contain
 - candidate admission digest;
 - authority-state-read receipt digest;
 - evaluation time/profile;
-- exact freshness-profile identity/digest checked;
+- exact freshness-profile identity/digest checked and independently derived per-surface/aggregate deadlines;
+- exact canonicalization-profile identity/digest checked;
 - exact deployment authority-surface-profile identity/digest checked;
 - recomputed epoch-set digest and maximum;
 - required/reconciled surface-set digests;
