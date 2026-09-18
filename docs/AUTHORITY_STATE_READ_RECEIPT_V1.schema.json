@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/thebrazenbeard/abil/docs/AUTHORITY_STATE_READ_RECEIPT_V1.schema.json",
+  "title": "ABIL Authority State Read Receipt V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_id",
+    "target_id",
+    "authority_surface_id",
+    "reader_identity",
+    "observed_subject",
+    "read_at",
+    "freshness_status",
+    "completeness_status",
+    "current_authority_epoch",
+    "epoch_set_digest",
+    "authority_state_digest"
+  ],
+  "properties": {
+    "schema_id": {"const": "ABIL_AUTHORITY_STATE_READ_RECEIPT_V1"},
+    "target_id": {"type": "string", "minLength": 1},
+    "authority_surface_id": {"type": "string", "minLength": 1},
+    "reader_identity": {"type": "string", "minLength": 1},
+    "observed_subject": {"type": "string", "minLength": 1},
+    "read_at": {"type": "string", "format": "date-time"},
+    "fresh_until": {"type": ["string", "null"], "format": "date-time"},
+    "freshness_status": {"enum": ["FRESH", "STALE", "UNKNOWN"]},
+    "completeness_status": {"enum": ["COMPLETE", "PARTIAL", "CONFLICTING", "UNKNOWN"]},
+    "current_authority_epoch": {"type": "integer", "minimum": 0},
+    "epoch_set_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "authority_state_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "required_surface_set_digest": {"type": ["string", "null"], "pattern": "^[0-9a-f]{64}$"},
+    "notes": {"type": ["string", "null"]}
+  }
+}
