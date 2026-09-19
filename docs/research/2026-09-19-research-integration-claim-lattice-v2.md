@@ -209,10 +209,15 @@ Role:
 ### PR #14 — replay-ledger anti-rollback
 
 Exact subject:
-`fc9846e3eb82e3b0c8eccbf42769b09ba7eaaa2c`
+`ec6dc0c1bc9f88bd9e93525e51876c3919df7f1e`
+
+V2 companion:
+`docs/research/2026-09-19-replay-ledger-protected-head-witness-and-dedup-currentness-v2.md`
 
 Role:
 - consumed requests cannot become unused after restore;
+- protected ReplayLedgerHeadWitness currentness;
+- target-dedup currentness and failover/restore reconciliation;
 - same-authority-generation replay rollback;
 - failover/dedup/session/batch replay state.
 
@@ -253,10 +258,15 @@ Role:
 ### PR #18 — evidence-ledger integrity / continuity
 
 Exact subject:
-`8d7ffe6650136b7a2037206da75a665235324a16`
+`13d0a5c6712ca38fed6887913c49366647bf623e`
+
+V2 companion:
+`docs/research/2026-09-19-evidence-ledger-protected-head-witness-and-completeness-currentness-v2.md`
 
 Role:
 - record integrity vs ledger completeness;
+- protected EvidenceLedgerHeadWitness currentness;
+- required-partition profile and closure;
 - gap/truncation/selective-restore detection;
 - negative/conflicting evidence preservation;
 - replica/restore/retention/compaction boundaries;
