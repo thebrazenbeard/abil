@@ -7,7 +7,7 @@ Date: 2026-09-19
 Applies to Draft PR #22 predecessor exact head `b9fbe482e37811053c1f3b1f0faf628ad4b5b188`.
 
 This companion reconciles PR #22 with:
-- PR #21 successor trust-currentness research at `2b4d5da33d9ce7dfe4d13c44a07bcd2f1c469120`;
+- PR #21 successor trust-currentness research at `abeaf69774eefe96701e7db73cd54e24dc5294b6` (exact witnessed-head equality + distinct witness-commit authority);
 - PR #23 governance-root/bootstrap research;
 - PR #24 time-source currentness research.
 
@@ -87,7 +87,7 @@ The receipt is evidence of authorization. It is not itself proof that the succes
 
 ## 5. Commit step and protected witness advancement
 
-After authorization, the successor node enters a pending state until the protected trust-state head witness advances coherently to that exact successor.
+After authorization, the successor node enters a pending state until the protected trust-state head witness advances coherently to that exact successor under the separately authorized witness-commit policy.
 
 Conceptual sequence:
 
