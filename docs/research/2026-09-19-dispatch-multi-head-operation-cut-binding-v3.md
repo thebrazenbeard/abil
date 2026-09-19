@@ -75,20 +75,52 @@ It may not:
 
 A pair of individually current heads is not automatically an admissible operation cut.
 
-## 4. Final dispatch fence
+## 4. Final dispatch fence and effect-admission linearization
 
-Immediately before the effect-possible boundary, the writer verifies the final operation cut.
+The final dispatch fence is not merely a last read followed by an unconstrained send.
 
-For Model A:
+Every protected operation profile MUST define one exact **effect-admission linearization point** after final cut verification and before physical effect can become possible. The profile MUST choose one of these semantics:
+
+### Admission S — serialized invalidation fence
+
+The writer obtains a `DispatchAdmissionFence` whose commit is serialized against every required protected-head transition that the operation profile declares invalidating.
+
+The fence binds:
+- the exact operation-cut receipt digest;
+- every required protected-head witness digest;
+- the exact invalidation profile;
+- the target/effect-intent digest;
+- a unique admission generation/token;
+- fence commit evidence and readback.
+
+After the fence commits and until the protected effect boundary is crossed or the admission is cancelled, an invalidating protected-head transition MUST NOT be able to create a stale-but-usable admission. Implementations may realize this with a shared serializable transaction, consensus/CAS object, fencing token, lease, or another mechanism that proves the same semantic property.
+
+If serialization/currentness of that admission cannot be established, dispatch remains blocked.
+
+### Admission P — explicit point-in-time commit
+
+An operation profile MAY instead define authorization/currentness as point-in-time.
+
+In that model:
+- all required Model A/B verification completes first;
+- one exact `DispatchAdmissionCommit` is the linearization point;
+- the commit binds the verified operation cut and effect intent;
+- protected-head movement after that commit is explicitly non-retroactive for the already-admitted effect;
+- later attempts MUST observe the newer protected heads;
+- any movement before the admission commit follows the normal invalidation rules and blocks/revalidates.
+
+The profile MUST state this non-retroactivity explicitly. Silence MUST NOT be interpreted as point-in-time authorization.
+
+For Model A before either admission form:
 - aggregate cut is current;
 - all bound head digests still match.
 
-For Model B:
+For Model B before either admission form:
 - required final rereads/revalidation pass;
 - invalidation rules show no disqualifying head movement;
-- MultiHeadOperationCutReceipt is current.
+- `MultiHeadOperationCutReceipt` is current.
 
-Only then may physical effect become possible.
+A successful verification read alone never authorizes the later effect boundary. The serialized fence or explicit point-in-time admission commit is the decisive semantic transition.
 
 ## 5. Head movement after reservation
 
@@ -137,6 +169,9 @@ A future `DispatchOperationCutReceipt` may specialize PR #25's `MultiHeadOperati
 - read/commit order;
 - invalidation policy;
 - final revalidation result;
+- effect-admission model (`SERIALIZED_INVALIDATION_FENCE` or `POINT_IN_TIME_COMMIT`);
+- exact effect-admission linearization receipt/token/digest;
+- admission non-retroactivity rule when point-in-time semantics are selected;
 - reservation commit receipt;
 - target dedup/prepare receipt where relied upon;
 - final dispatch eligibility;
@@ -168,9 +203,13 @@ Future implementation/review SHOULD include:
 8. final dispatch fence readback fails; no effect-possible transition.
 9. profile does not require evidence head for a genuinely replay-only idempotent internal operation; do not invent unnecessary axis.
 10. target dedup used as replay substitute but evidence/trust required heads still need coherent operation cut.
+11. all heads pass final revalidation, then an invalidating head advances before effect admission; stale read-only verification MUST NOT authorize dispatch.
+12. serialized-admission profile permits an invalidating head transition to commit concurrently while the old admission token remains usable; reject the implementation/profile.
+13. point-in-time profile omits an exact admission commit or omits explicit post-commit non-retroactivity; reject the profile.
+14. point-in-time admission commits, then a protected head advances; the already-admitted effect follows the declared non-retroactivity rule while every later attempt observes the new head.
 
 ## 11. Practical rule
 
-> A protected dispatch may cross the effect-possible boundary only after every required protected-head dependency is both uniquely current under PR #25 and coherently bound into the exact operation cut by an explicit aggregate or ordered-revalidation profile.
+> A protected dispatch may cross the effect-possible boundary only after every required protected-head dependency is uniquely current under PR #25, coherently bound into the exact operation cut, and converted into an effect admission at an explicit linearization point whose concurrency semantics prevent a stale verification result from being used after an invalidating pre-admission head movement.
 
 No dispatch implementation, machine action, witness service, provider mutation, merge, or deployment is authorized.
