@@ -267,14 +267,20 @@ Role:
 ### PR #20 — evidence producer authenticity
 
 Exact subject:
-`6ee8a9d252cd1c4d1243e861c650b0e6629fb872`
+`dfb66be6b39ee66a270f1f29fd25de24790affb1`
+
+V2 companion:
+`docs/research/2026-09-19-evidence-producer-chain-provenance-and-trust-cut-v2.md`
 
 Role:
-- claimed vs authenticated producer identity;
+- claimed origin vs authenticated origin vs intermediary/transport/transformer identity;
 - producer role/scope;
 - trust-domain separation;
 - historical authenticity vs current producer eligibility;
 - verifier identity/profile;
+- envelope authenticity vs origin authenticity;
+- producer-chain/transformation provenance;
+- shared-credential/quorum boundaries;
 - compromise/rotation/revocation semantics.
 
 Key rule:
