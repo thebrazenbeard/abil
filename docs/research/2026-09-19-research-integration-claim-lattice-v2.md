@@ -224,10 +224,14 @@ Role:
 ### PR #15 — dispatch commit ordering
 
 Exact subject:
-`88f1a232a7265e8713e4564260b28e35cf53369e`
+`78b62ccb5c3c6f669a50185c2080eb5cf607848b`
+
+V2 companion:
+`docs/research/2026-09-19-dispatch-reservation-protected-commit-barrier-v2.md`
 
 Role:
 - durable pre-dispatch reservation;
+- protected replay-head commit barrier before effect-possible boundary;
 - conservative effect-may-occur boundary;
 - crash-window classification;
 - known-no-effect proof;
@@ -247,10 +251,15 @@ execution, observation, and causation remain separate evidence layers.
 ### PR #17 — transaction reconciliation / late evidence
 
 Exact subject:
-`1837c6b6c47225fd02674ea7e735caef0f83e97b`
+`30cccddc0eb2ec476d97c3c6166cc71d2b31b7fb`
+
+V2 companion:
+`docs/research/2026-09-19-transaction-reconciliation-current-cut-and-producer-provenance-v2.md`
 
 Role:
 - append-only reconciliation of delayed receipts/observations;
+- selection from the complete current EvidenceLedgerHeadWitness cut;
+- producer/reviewer provenance and conflict-preserving resolution;
 - no return to UNUSED;
 - retry eligibility separate from historical execution conclusion;
 - partial/conflicting effect preservation.
