@@ -1,0 +1,52 @@
+{
+  "schema": "ABIL_EXODUS_RECEIPT_V2",
+  "marker": "STARTING_SNAPSHOT — FRESHNESS REQUIRED BEFORE EFFECT",
+  "date": "2026-09-20",
+  "repository": "thebrazenbeard/abil",
+  "branch": "state/abil-exodus-20260919-v1",
+  "checkpoint": {
+    "path": "state/exodus/ABIL_EXODUS_20260920_V2.md",
+    "blob": "836bb23de13cc7bfc802205d52343d743e0152c4",
+    "creation_commit": "ae1bf6e5957b9933328e4b3b4ba79fc31c01d4ff"
+  },
+  "execution_contract": {
+    "path": "governance/ABIL_EPHEMERAL_EXECUTION_CONTRACT_V2.md",
+    "blob": "9b54534199238f9bde01ee7adecca97c80ad164c",
+    "creation_commit": "15ba4a6a73870340e97d6cf7407917168e9ce1cb"
+  },
+  "exact_observed": {
+    "abil_main": "0812d9780ce1648820269fa142a43e17030ef793",
+    "abil_pr_3_head": "1da5bc57b0228178300f6ba966d97d1dce807dc1",
+    "abil_pr_3_base": "712d5b30b45ba9299dcfce0599878cb81db70e8f",
+    "bus_main": "aeab0f04fc9b4bd7c2945c9a53011c53fac809b4",
+    "bus_topology_blob": "69e505031d4e53dcb853578dac23817649af1918",
+    "bus_exodus_pr_140_head": "2461df3a1a8393d4c7ded227afb17ecc7abfacb3",
+    "bus_runtime_fencing_pr_146_head": "13350bbf6767c54e291e0c4c5e41b2d1c8bc9a92",
+    "bt2_exodus_pr_35_head": "ea0fcea92d829ee4a79628f8e50f31783d65b4ea"
+  },
+  "project_board": {
+    "exists": true,
+    "item_state_observed_in_this_runtime": false,
+    "rule": "inspect actual GitHub Project items/statuses when runtime exposes them; otherwise mark NOT_OBSERVED and do not infer"
+  },
+  "review_state": {
+    "pr_3_thirteen_r6": "NO_DEFECT_FOUND",
+    "pr_3_thirteen_comment_id": 5743585721,
+    "pr_3_six_r6": "PASS_FROM_SIX_RUNTIME_RESTORE_RESOURCE_FACET",
+    "pr_3_six_review_id": 5260316638,
+    "remaining_exact_head_peer_facets_complete": false,
+    "coordinator_reconciliation_complete": false,
+    "patrick_final_written_design_acceptance": false
+  },
+  "exodus": {
+    "chat_required": false,
+    "durable_worker_role": "ABIL_EXECUTION_WORKER",
+    "primary_future_interface": "BT2 Coordinator",
+    "permanent_worker_chat_required": false,
+    "bus_pr_140_source_candidate_active_writers_ready": "20/20",
+    "runtime_instance_fencing": "DESIGN_ONLY_PR_146 / NO_PROVIDER_EFFECT"
+  },
+  "protected_effects_performed": [],
+  "protected_effects_authorized_by_receipt": [],
+  "next_directive": "BT2_COORDINATOR::ABIL::EXODUS_RESUME::FRESH_CHECK_PR3_R6_PEERS_AND_RECONCILE"
+}
