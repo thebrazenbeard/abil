@@ -9,7 +9,7 @@ Architecture base:
 
 Purpose:
 
-> Make the current ABIL research portfolio reviewable as a dependency lattice of bounded claims through PR #24 without turning research dependencies into implementation authority, merge order, or a readiness score.
+> Make the current ABIL research portfolio reviewable as a dependency lattice of bounded claims through PR #25 without turning research dependencies into implementation authority, merge order, or a readiness score.
 
 This V2 companion supersedes V1 only as the newer integration map.
 It does not rewrite or absorb the underlying PR subjects.
@@ -384,6 +384,30 @@ Role:
 Key rule:
 protected lineage/witness currentness is structural; time may only narrow temporal admissibility for claims that require it.
 
+
+### PR #25 — protected-head witness semantic primitive
+
+Exact subject:
+`7e760c0f1bd4384a079948a20dba1cdef188f0dc`
+
+Artifact:
+`docs/research/2026-09-19-protected-head-witness-semantic-primitive-v1.md`
+
+Role:
+- reusable semantics for replay/evidence/trust/governance protected-head currentness;
+- predecessor-bound unique advancement;
+- semantic transition authority vs witness-commit authority separation;
+- independently current witness authority;
+- split-brain/failover conflict semantics;
+- aggregate or explicitly ordered multi-head operation cuts.
+
+Exact-head review state:
+- PASS / PASS_WITH_NONBLOCKING_FINDINGS for the non-normative semantic-research claim;
+- implementation obligations remain open: concrete root/bootstrap mechanism, mechanically testable failure-domain independence, linearizability/consensus/quorum technology, durability/availability qualification, and concrete multi-head invalidation profiles.
+
+Key rule:
+two incompatible successors from one exact predecessor cannot both become `CURRENT_COMMITTED` for the same scope.
+
 ## 6. Integrated dependency graph
 
 Conceptual high-level graph:
@@ -436,6 +460,8 @@ PR18 --> PR20 producer authenticity
 
 PR24 time-source currentness cross-cuts PR6/12/16/20/21/22/23
 but MUST NOT become the structural authority for PR21/22/23.
+
+PR25 supplies reusable ProtectedHeadWitness semantics consumed conceptually by PR14/18/21/23 and multi-head protected cuts; it does not instantiate any witness technology or current head.
 
 PR19 (this integration map) describes dependency/claim composition only.
 ```
@@ -490,6 +516,9 @@ PR #23.
 ### Time-source currentness
 PR #24.
 
+### Protected-head witness semantics
+PR #25.
+
 A green state in one axis does not manufacture another.
 
 ## 8. No PASS inheritance
@@ -502,6 +531,7 @@ Examples:
 - PR #22 authorization cannot make an uncommitted successor current; PR #21 witness commit must establish it.
 - PR #23 current governance root does not prove current subordinate trust state.
 - PR #24 valid time cannot revive stale/revoked/root-conflicting state.
+- PR #25 semantic PASS does not prove any concrete witness implementation is linearizable, durable, independent, current, or deployed.
 - PR #18 complete ledger does not prove the producer was authentic; PR #20 addresses that.
 - PR #20 authentic producer does not prove the trust state accepting that producer is current; PR #21 addresses that.
 - PR #15 durable dispatch ordering does not prove physical effect or causation; PR #16 addresses that.
@@ -677,6 +707,7 @@ Highest-priority active subjects:
 - PR #23 `705e0a9c...`
 - PR #24 `57039cec...`
   — linked trust/governance/time hostile composition review.
+- PR #25 `7e760c0f...` — semantic research PASS with nonblocking implementation obligations; no implementation/current witness claim.
 
 Also pending as applicable:
 - PR #2 architecture;
@@ -711,7 +742,7 @@ PR #6:
 written contract PASS only.
 
 ### Research
-PR #4/#5/#7–#24:
+PR #4/#5/#7–#25:
 non-normative research;
 no executable proof;
 no product certification;
@@ -725,7 +756,7 @@ dependency/claim reasoning only.
 
 ## 18. Protected-effect boundary
 
-Nothing in PR #2–#24 authorizes:
+Nothing in PR #2–#25 authorizes:
 
 - merge/canonical promotion;
 - implementation planning past the PR #3 clean-review gate without Patrick acceptance;
