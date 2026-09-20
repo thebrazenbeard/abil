@@ -22,7 +22,8 @@
     "bus_topology_blob": "69e505031d4e53dcb853578dac23817649af1918",
     "bus_exodus_pr_140_head": "2461df3a1a8393d4c7ded227afb17ecc7abfacb3",
     "bus_runtime_fencing_pr_146_head": "13350bbf6767c54e291e0c4c5e41b2d1c8bc9a92",
-    "bt2_exodus_pr_35_head": "ea0fcea92d829ee4a79628f8e50f31783d65b4ea"
+    "bt2_exodus_pr_35_head": "0ea6b0167d4ea9bfd5a976737fa77471a59759a6",
+    "bt2_exodus_pr_35_pre_checkpoint_head": "ea0fcea92d829ee4a79628f8e50f31783d65b4ea"
   },
   "project_board": {
     "exists": true,
@@ -48,5 +49,11 @@
   },
   "protected_effects_performed": [],
   "protected_effects_authorized_by_receipt": [],
-  "next_directive": "BT2_COORDINATOR::ABIL::EXODUS_RESUME::FRESH_CHECK_PR3_R6_PEERS_AND_RECONCILE"
+  "next_directive": "BT2_COORDINATOR::ABIL::EXODUS_RESUME::FRESH_CHECK_PR3_R6_PEERS_AND_RECONCILE",
+  "freshness_delta": {
+    "path": "state/exodus/ABIL_EXODUS_20260920_V2_FRESHNESS_DELTA.md",
+    "blob": "eef20e3f20b781ef2a059166a68d017eea80ff99",
+    "creation_commit": "028a048e1e14f7df134ce96ab7b7457d8d3d7474",
+    "reason": "BT2 PR #35 moved concurrently after checkpoint creation"
+  }
 }
