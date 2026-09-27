@@ -37,7 +37,7 @@ The default strategy is therefore **replacement-capable, coexistence-first**.
 
 **Foundation / research / architecture. No production control code exists yet.**
 
-The repository contains the product thesis, architecture boundaries, validation strategy, competitive reality check, the frozen first F0 learning-substrate design, and a proposed successor control-reconstruction architecture under review. Claims remain hypotheses until demonstrated empirically.
+The repository contains the product thesis, architecture boundaries, validation strategy, competitive reality check, the frozen first F0 learning-substrate design, the canonical successor control-reconstruction architecture, and the bounded R2 non-actuating substrate design. Claims remain hypotheses until demonstrated empirically.
 
 The successor architecture is now the canonical repository design direction on `main`. The immediate R2 work remains bounded to a corrected early learning/telemetry substrate; repository design does not authorize write-capable commissioning or production control.
 
@@ -146,8 +146,8 @@ The exact Linux distribution, real-time strategy, first fieldbus, HMI framework,
 - `docs/CONTROL_AUTHORITY_AND_LIFECYCLE_CONTRACT.md` — normative proposed trust/lifecycle companion covering promotion authority, anti-rollback, commissioning envelope, transactional commands, state axes, identity, and safety noninterference.
 - `docs/FIELD_VALIDATION_ROADMAP.md` — staged/branching route from substrate qualification through permanent supported deployment modes.
 - `docs/COMPETITIVE_REALITY_CHECK.md` — what is already commoditized and what the stronger reconstruction thesis must prove.
-- `docs/superpowers/specs/2026-09-08-abil-control-reconstruction-product-architecture.md` — proposed successor product/control architecture under review.
-- `docs/superpowers/plans/2026-09-08-abil-control-reconstruction-product-architecture.md` — documentation implementation/review plan for the successor architecture.
+- `docs/superpowers/specs/2026-09-08-abil-control-reconstruction-product-architecture.md` — canonical successor product/control architecture on `main`.
+- `docs/superpowers/plans/2026-09-08-abil-control-reconstruction-product-architecture.md` — implementation/review plan retained as design provenance for the canonical successor architecture.
 - `docs/superpowers/specs/2026-09-06-abil-foundation-design.md` — frozen narrower first technical slice retained as historical provenance.
 - `docs/superpowers/plans/2026-09-06-abil-f0-shadow-pilot.md` — frozen first F0 implementation plan retained as historical provenance.
 
