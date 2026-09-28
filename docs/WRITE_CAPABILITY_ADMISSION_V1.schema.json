@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/thebrazenbeard/abil/docs/WRITE_CAPABILITY_ADMISSION_V1.schema.json",
+  "title": "ABIL Write Capability Admission V1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_id",
+    "status",
+    "implementation_subject_sha",
+    "target_id",
+    "authority_epoch",
+    "authority_grant_digest",
+    "safety_classification_digest",
+    "commissioning_envelope_digest",
+    "control_coverage_digest",
+    "active_artifact_digest",
+    "writer_fence_id",
+    "authorized_effects",
+    "authorized_by",
+    "issued_at"
+  ],
+  "properties": {
+    "schema_id": {"const": "ABIL_WRITE_CAPABILITY_ADMISSION_V1"},
+    "status": {"enum": ["AUTHORIZED", "REVOKED"]},
+    "implementation_subject_sha": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "target_id": {"type": "string", "minLength": 1},
+    "authority_epoch": {"type": "integer", "minimum": 1},
+    "authority_grant_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "safety_classification_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "commissioning_envelope_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "control_coverage_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "active_artifact_digest": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "writer_fence_id": {"type": "string", "minLength": 1},
+    "authorized_effects": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "authorized_by": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "issued_at": {"type": "string", "format": "date-time"},
+    "expires_at": {"type": ["string", "null"], "format": "date-time"},
+    "revocation_reason": {"type": ["string", "null"]}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"status": {"const": "REVOKED"}}},
+      "then": {"required": ["revocation_reason"]}
+    }
+  ]
+}

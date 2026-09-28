@@ -1,0 +1,398 @@
+{
+  "schema": "ABIL_RESEARCH_CONSOLIDATION_MANIFEST_V1",
+  "canonical_base": "13b989be46a986c95c75612e332779a75c0f0f1f",
+  "generated_date": "2026-09-28",
+  "authority": {
+    "imports_are_runtime_authority": false,
+    "imports_are_production_qualification": false,
+    "imports_are_safety_authority": false,
+    "canonical_architecture_files_overwritten": false
+  },
+  "entry_count": 64,
+  "entries": [
+    {
+      "path": "docs/AUTHORITY_STATE_READ_RECEIPT_V1.schema.json",
+      "source_pull_request": 6,
+      "source_head": "b191822ecbc95ce120384acf1c17289b4b834033",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/WRITE_CAPABILITY_ADMISSION_V1.md",
+      "source_pull_request": 6,
+      "source_head": "b191822ecbc95ce120384acf1c17289b4b834033",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/WRITE_CAPABILITY_ADMISSION_V1.schema.json",
+      "source_pull_request": 6,
+      "source_head": "b191822ecbc95ce120384acf1c17289b4b834033",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/WRITE_CAPABILITY_ADMISSION_VALIDATION_V1.hostile-vectors.json",
+      "source_pull_request": 6,
+      "source_head": "b191822ecbc95ce120384acf1c17289b4b834033",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/WRITE_CAPABILITY_ADMISSION_VALIDATION_V1.md",
+      "source_pull_request": 6,
+      "source_head": "b191822ecbc95ce120384acf1c17289b4b834033",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-13-appliance-os-baseline.md",
+      "source_pull_request": 4,
+      "source_head": "e60bc866ad6893214c14b7dd25e312752dc4c791",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-13-competitive-source-integrity-addendum.md",
+      "source_pull_request": 5,
+      "source_head": "385207c1bff5189651c1048f2d09f3805d751873",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-13-control-reconstruction-competitive-scan.md",
+      "source_pull_request": 5,
+      "source_head": "385207c1bff5189651c1048f2d09f3805d751873",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-13-controller-compliance-conformance-addendum.md",
+      "source_pull_request": 4,
+      "source_head": "e60bc866ad6893214c14b7dd25e312752dc4c791",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-13-deterministic-execution-topology-matrix.md",
+      "source_pull_request": 4,
+      "source_head": "e60bc866ad6893214c14b7dd25e312752dc4c791",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-13-deterministic-runtime-fieldbus-feasibility.md",
+      "source_pull_request": 4,
+      "source_head": "e60bc866ad6893214c14b7dd25e312752dc4c791",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-13-source-optional-reconstruction-benchmark.md",
+      "source_pull_request": 5,
+      "source_head": "385207c1bff5189651c1048f2d09f3805d751873",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-18-component-conformance-evidence-boundary.md",
+      "source_pull_request": 4,
+      "source_head": "e60bc866ad6893214c14b7dd25e312752dc4c791",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-18-component-evidence-invalidation-matrix-v1.md",
+      "source_pull_request": 4,
+      "source_head": "e60bc866ad6893214c14b7dd25e312752dc4c791",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-18-cross-axis-dependency-cycle-resolution-v1.md",
+      "source_pull_request": 10,
+      "source_head": "5e15ed24fc5f9286eb21377e0532f6d88e8a1840",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-18-cross-axis-state-consistency-v1.md",
+      "source_pull_request": 9,
+      "source_head": "90d40f4baca29629f8f17f956f20687fee674820",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-18-currentness-snapshot-revalidation-v1.md",
+      "source_pull_request": 12,
+      "source_head": "3d61f4da301af41f4d56bbcffb4609c38b815bd3",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-18-deployment-commissioning-evidence-invalidation-v1.md",
+      "source_pull_request": 7,
+      "source_head": "a62ae16a0c1bc484ae6b45e4af853af64a2e6707",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-18-dispatch-commit-ordering-v1.md",
+      "source_pull_request": 15,
+      "source_head": "7e92fc4dcef6bf5e658ddf80119a8a26f02a5037",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-18-effect-intent-binding-and-antireplay-v1.md",
+      "source_pull_request": 13,
+      "source_head": "8ab8ee9e95c86a04c4d34a8042e13b05979d6364",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-18-evaluator-context-benchmark-alignment.md",
+      "source_pull_request": 5,
+      "source_head": "385207c1bff5189651c1048f2d09f3805d751873",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-18-evidence-ledger-integrity-and-continuity-v1.md",
+      "source_pull_request": 18,
+      "source_head": "0c7a764486e7bb758915e8bbe767fc5ea6f9416a",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-18-evidence-producer-authenticity-v1.md",
+      "source_pull_request": 20,
+      "source_head": "dfb66be6b39ee66a270f1f29fd25de24790affb1",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-18-execution-evidence-and-causal-attribution-v1.md",
+      "source_pull_request": 16,
+      "source_head": "ac36991d6c54dfa870aca7c64d05a980a034c10c",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-18-governance-root-bootstrap-boundary-v1.md",
+      "source_pull_request": 23,
+      "source_head": "705e0a9c2aa0143091761a2eb875213e1c24832e",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-18-non-authority-currentness-proof-v1.md",
+      "source_pull_request": 11,
+      "source_head": "fcb0a88b0a37a9c7c722fe0e5f966a7a3f968bc3",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-18-replay-ledger-antirollback-v1.md",
+      "source_pull_request": 14,
+      "source_head": "e9fb2751e75379ae901de5dcf539cc64cc2f109d",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-18-research-integration-claim-lattice-v1.md",
+      "source_pull_request": 19,
+      "source_head": "b26b637e5ff014c852b77a6d4189fd4d751afcf1",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-18-support-recovery-state-currentness-v1.md",
+      "source_pull_request": 8,
+      "source_head": "7d11cea51bfff3f2bf32e98516479be4d742d172",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-18-synthetic-reconstruction-baseline-workflows-v1.md",
+      "source_pull_request": 5,
+      "source_head": "385207c1bff5189651c1048f2d09f3805d751873",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-18-synthetic-reconstruction-evidence-package-v1.md",
+      "source_pull_request": 5,
+      "source_head": "385207c1bff5189651c1048f2d09f3805d751873",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-18-synthetic-reconstruction-fixture-v1.md",
+      "source_pull_request": 5,
+      "source_head": "385207c1bff5189651c1048f2d09f3805d751873",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-18-synthetic-reconstruction-hostile-validation-v1.md",
+      "source_pull_request": 5,
+      "source_head": "385207c1bff5189651c1048f2d09f3805d751873",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-18-synthetic-reconstruction-preregistration-v1.md",
+      "source_pull_request": 5,
+      "source_head": "385207c1bff5189651c1048f2d09f3805d751873",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-18-time-source-currentness-and-ordering-v1.md",
+      "source_pull_request": 24,
+      "source_head": "57039cecbc8aa8bbf41ae2bf56a037d50a03db5b",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-18-transaction-reconciliation-and-late-evidence-v1.md",
+      "source_pull_request": 17,
+      "source_head": "30cccddc0eb2ec476d97c3c6166cc71d2b31b7fb",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-18-trust-state-currentness-and-antirollback-v1.md",
+      "source_pull_request": 21,
+      "source_head": "abeaf69774eefe96701e7db73cd54e24dc5294b6",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-18-trust-state-transition-authorization-v1.md",
+      "source_pull_request": 22,
+      "source_head": "a6377627f73fed5a396ea9606e02b17dbdd92392",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-19-component-evidence-definition-authority-and-restoration-independence-v2.md",
+      "source_pull_request": 4,
+      "source_head": "e60bc866ad6893214c14b7dd25e312752dc4c791",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-19-component-evidence-restoration-authority-and-dependency-closure-v1.md",
+      "source_pull_request": 4,
+      "source_head": "e60bc866ad6893214c14b7dd25e312752dc4c791",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-19-dispatch-multi-head-operation-cut-binding-v3.md",
+      "source_pull_request": 15,
+      "source_head": "7e92fc4dcef6bf5e658ddf80119a8a26f02a5037",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-19-dispatch-reservation-protected-commit-barrier-v2.md",
+      "source_pull_request": 15,
+      "source_head": "7e92fc4dcef6bf5e658ddf80119a8a26f02a5037",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-19-evidence-ledger-protected-head-primitive-binding-v3.md",
+      "source_pull_request": 18,
+      "source_head": "0c7a764486e7bb758915e8bbe767fc5ea6f9416a",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-19-evidence-ledger-protected-head-witness-and-completeness-currentness-v2.md",
+      "source_pull_request": 18,
+      "source_head": "0c7a764486e7bb758915e8bbe767fc5ea6f9416a",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-19-evidence-producer-chain-provenance-and-trust-cut-v2.md",
+      "source_pull_request": 20,
+      "source_head": "dfb66be6b39ee66a270f1f29fd25de24790affb1",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-19-governance-root-protected-currentness-witness-v2.md",
+      "source_pull_request": 23,
+      "source_head": "705e0a9c2aa0143091761a2eb875213e1c24832e",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-19-protected-head-witness-semantic-primitive-v1.md",
+      "source_pull_request": 25,
+      "source_head": "7e760c0f1bd4384a079948a20dba1cdef188f0dc",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-19-replay-ledger-protected-head-primitive-binding-v3.md",
+      "source_pull_request": 14,
+      "source_head": "e9fb2751e75379ae901de5dcf539cc64cc2f109d",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-19-replay-ledger-protected-head-witness-and-dedup-currentness-v2.md",
+      "source_pull_request": 14,
+      "source_head": "e9fb2751e75379ae901de5dcf539cc64cc2f109d",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-19-research-integration-claim-lattice-v2.md",
+      "source_pull_request": 19,
+      "source_head": "b26b637e5ff014c852b77a6d4189fd4d751afcf1",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-19-research-integration-claim-lattice-v3-rebind.md",
+      "source_pull_request": 19,
+      "source_head": "b26b637e5ff014c852b77a6d4189fd4d751afcf1",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-19-research-integration-claim-lattice-v4-rebind.md",
+      "source_pull_request": 19,
+      "source_head": "b26b637e5ff014c852b77a6d4189fd4d751afcf1",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-19-research-integration-claim-lattice-v5-rebind.md",
+      "source_pull_request": 19,
+      "source_head": "b26b637e5ff014c852b77a6d4189fd4d751afcf1",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-19-time-source-currentness-and-trust-ordering-composition-v2.md",
+      "source_pull_request": 24,
+      "source_head": "57039cecbc8aa8bbf41ae2bf56a037d50a03db5b",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-19-transaction-reconciliation-current-cut-and-producer-provenance-v2.md",
+      "source_pull_request": 17,
+      "source_head": "30cccddc0eb2ec476d97c3c6166cc71d2b31b7fb",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-19-trust-state-exact-witness-equality-and-commit-authority-v3.md",
+      "source_pull_request": 21,
+      "source_head": "abeaf69774eefe96701e7db73cd54e24dc5294b6",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-19-trust-state-protected-head-witness-and-transition-authority-v2.md",
+      "source_pull_request": 21,
+      "source_head": "abeaf69774eefe96701e7db73cd54e24dc5294b6",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "docs/research/2026-09-19-trust-state-transition-authorization-composition-v2.md",
+      "source_pull_request": 22,
+      "source_head": "a6377627f73fed5a396ea9606e02b17dbdd92392",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "governance/ABIL_EPHEMERAL_EXECUTION_CONTRACT_V1.md",
+      "source_pull_request": 26,
+      "source_head": "e7b5439bd886c0dcc0127852a4d3557cfa169028",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "governance/ABIL_EPHEMERAL_EXECUTION_CONTRACT_V2.md",
+      "source_pull_request": 26,
+      "source_head": "e7b5439bd886c0dcc0127852a4d3557cfa169028",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "state/exodus/ABIL_EXODUS_20260919_V1.md",
+      "source_pull_request": 26,
+      "source_head": "e7b5439bd886c0dcc0127852a4d3557cfa169028",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "state/exodus/ABIL_EXODUS_20260920_V2.md",
+      "source_pull_request": 26,
+      "source_head": "e7b5439bd886c0dcc0127852a4d3557cfa169028",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "state/exodus/ABIL_EXODUS_20260920_V2.receipt.json",
+      "source_pull_request": 26,
+      "source_head": "e7b5439bd886c0dcc0127852a4d3557cfa169028",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    },
+    {
+      "path": "state/exodus/ABIL_EXODUS_20260920_V2_FRESHNESS_DELTA.md",
+      "source_pull_request": 26,
+      "source_head": "e7b5439bd886c0dcc0127852a4d3557cfa169028",
+      "classification": "HISTORICAL_NON_NORMATIVE_EVIDENCE"
+    }
+  ]
+}
